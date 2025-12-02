@@ -55,7 +55,7 @@ header h1 {
 @media (min-width: 768px) {
     .landing-container {
         flex-direction: row;
-        height: calc(100vh - 60px); /* Subtract header height */
+        height: calc(100vh - var(--header-height)); /* Subtract header height */
     }
 }
 

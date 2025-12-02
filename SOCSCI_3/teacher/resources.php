@@ -85,7 +85,8 @@ if(isset($_GET['edit'])) {
 </div>
 
 <h3>Uploaded Resources</h3>
-<table>
+<input type="text" id="search-resources" class="search-bar form-control" data-target="#table-resources" placeholder="Search Resources..." style="margin-bottom: 10px; max-width: 300px;">
+<table id="table-resources">
     <thead>
         <tr>
             <th>Subject</th>
@@ -102,7 +103,7 @@ if(isset($_GET['edit'])) {
             <td><?= htmlspecialchars($row['description']) ?></td>
             <td>
                 <?php if($row['file_path']): ?>
-                    <?= htmlspecialchars($row['original_filename']) ?>
+                    <a href="#" onclick="previewFile('<?= $row['file_path'] ?>'); return false;"><?= htmlspecialchars($row['original_filename']) ?></a>
                 <?php else: ?>
                     No File
                 <?php endif; ?>

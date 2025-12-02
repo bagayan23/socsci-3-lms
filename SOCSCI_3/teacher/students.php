@@ -7,7 +7,8 @@ $students = $conn->query("SELECT * FROM users WHERE role='student' ORDER BY last
 
 <h2>List of Students</h2>
 
-<table>
+<input type="text" id="search-students" class="search-bar form-control" data-target="#table-students" placeholder="Search Students..." style="margin-bottom: 10px; max-width: 300px;">
+<table id="table-students">
     <thead>
         <tr>
             <th>Student ID</th>

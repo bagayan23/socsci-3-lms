@@ -7,6 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_activity'])) {
     $title = $_POST['title'];
     $description = $_POST['description'];
     $type = $_POST['type'];
+    $total_score = intval($_POST['total_score']);
     $teacher_id = $_SESSION['user_id'];
     
     $file_path = null;
@@ -19,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_activity'])) {
         move_uploaded_file($_FILES['file']['tmp_name'], $file_path);
     }
 
-    $stmt = $conn->prepare("INSERT INTO activities (teacher_id, title, description, type, file_path, original_filename) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("isssss", $teacher_id, $title, $description, $type, $file_path, $original_filename);
+    $stmt = $conn->prepare("INSERT INTO activities (teacher_id, title, description, type, total_score, file_path, original_filename) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("isssiss", $teacher_id, $title, $description, $type, $total_score, $file_path, $original_filename);
     $stmt->execute();
 }
 
@@ -67,6 +68,10 @@ $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESS
             </select>
         </div>
         <div class="form-group">
+            <label>Total Score</label>
+            <input type="number" name="total_score" class="form-control" required value="100" min="1">
+        </div>
+        <div class="form-group">
             <label>Attach File (Optional)</label>
             <input type="file" name="file" class="form-control">
         </div>
@@ -75,13 +80,15 @@ $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESS
 </div>
 
 <h3>Posted Activities</h3>
+<input type="text" id="search-activities" class="search-bar form-control" data-target="#table-activities" placeholder="Search Activities..." style="margin-bottom: 10px; max-width: 300px;">
 <div style="overflow-x: auto; margin-bottom: 2rem;">
-    <table>
+    <table id="table-activities">
         <thead>
             <tr>
                 <th>Title</th>
                 <th>Description</th>
                 <th>Type</th>
+                <th>Total Score</th>
                 <th>File</th>
                 <th>Date Posted</th>
                 <th>Action</th>
@@ -94,6 +101,7 @@ $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESS
                     <td><?= htmlspecialchars($act['title']) ?></td>
                     <td><?= htmlspecialchars($act['description']) ?></td>
                     <td><?= ucfirst($act['type']) ?></td>
+                    <td><?= $act['total_score'] ?></td>
                     <td>
                         <?php if($act['file_path']): ?>
                             <button onclick="previewFile('<?= $act['file_path'] ?>')" class="btn" style="padding: 5px 10px; width: auto; font-size: 0.8rem;">View</button>
@@ -117,11 +125,12 @@ $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESS
 </div>
 
 <h3>Grading Queue</h3>
+<input type="text" id="search-grading" class="search-bar form-control" data-target="#table-grading" placeholder="Search Grading Queue..." style="margin-bottom: 10px; max-width: 300px;">
 <?php
 // Get submissions that need grading
 $submissions = $conn->query("
     SELECT s.id as sub_id, s.submitted_at, s.file_path, s.text_submission, 
-           u.first_name, u.last_name, a.title, g.grade
+           u.first_name, u.last_name, a.title, a.total_score, g.grade
     FROM submissions s
     JOIN users u ON s.student_id = u.id
     JOIN activities a ON s.activity_id = a.id
@@ -131,7 +140,7 @@ $submissions = $conn->query("
 ");
 ?>
 <div style="overflow-x: auto;">
-    <table>
+    <table id="table-grading">
         <thead>
             <tr>
                 <th>Student</th>
@@ -156,11 +165,11 @@ $submissions = $conn->query("
                     <?php endif; ?>
                 </td>
                 <td><?= $sub['submitted_at'] ?></td>
-                <td><?= $sub['grade'] !== null ? $sub['grade'] : 'N/A' ?></td>
+                <td><?= $sub['grade'] !== null ? $sub['grade'] . ' / ' . $sub['total_score'] : 'N/A' ?></td>
                 <td>
-                    <form method="POST" style="display:flex; gap:5px;">
+                    <form method="POST" style="display:flex; gap:5px;" onsubmit="return validateGrade(this, <?= $sub['total_score'] ?>)">
                         <input type="hidden" name="submission_id" value="<?= $sub['sub_id'] ?>">
-                        <input type="number" name="grade" placeholder="Grade" step="0.01" style="width: 60px;" required value="<?= $sub['grade'] ?>">
+                        <input type="number" name="grade" placeholder="Max: <?= $sub['total_score'] ?>" step="0.01" style="width: 80px;" required value="<?= $sub['grade'] ?>" min="0" max="<?= $sub['total_score'] ?>">
                         <input type="text" name="feedback" placeholder="Feedback" style="width: 100px;">
                         <button type="submit" name="submit_grade" class="btn" style="width: auto; padding: 5px;">Save</button>
                     </form>

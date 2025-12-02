@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS activities (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     type ENUM('quiz', 'activity') NOT NULL DEFAULT 'activity',
+    total_score INT DEFAULT 100,
     file_path VARCHAR(255),
     original_filename VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -7,7 +7,8 @@ $resources = $conn->query("SELECT r.*, u.first_name, u.last_name FROM resources 
 
 <h2>Resources</h2>
 
-<table>
+<input type="text" id="search-student-resources" class="search-bar form-control" data-target="#table-student-resources" placeholder="Search Resources..." style="margin-bottom: 10px; max-width: 300px;">
+<table id="table-student-resources">
     <thead>
         <tr>
             <th>Subject</th>

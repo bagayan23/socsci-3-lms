@@ -22,7 +22,8 @@ $pending_activities = $conn->query("
 
     <div class="card" style="max-width: 100%;">
         <h3>New Resources</h3>
-        <table>
+        <input type="text" id="search-new-resources" class="search-bar form-control" data-target="#table-new-resources" placeholder="Search Resources..." style="margin-bottom: 10px; max-width: 300px;">
+        <table id="table-new-resources">
             <thead>
                 <tr>
                     <th>Subject</th>
@@ -44,7 +45,8 @@ $pending_activities = $conn->query("
 
     <div class="card" style="max-width: 100%;">
         <h3>Pending Activities</h3>
-        <table>
+        <input type="text" id="search-pending-activities" class="search-bar form-control" data-target="#table-pending-activities" placeholder="Search Activities..." style="margin-bottom: 10px; max-width: 300px;">
+        <table id="table-pending-activities">
             <thead>
                 <tr>
                     <th>Title</th>

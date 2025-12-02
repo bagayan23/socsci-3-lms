@@ -1,4 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
+
+    // --- Dynamic Header Height Calculation ---
+    const header = document.querySelector('header');
+    if (header) {
+        const updateHeaderHeight = () => {
+            const height = header.offsetHeight;
+            document.documentElement.style.setProperty('--header-height', `${height}px`);
+        };
+
+        // Initial set
+        updateHeaderHeight();
+
+        // Update on resize
+        window.addEventListener('resize', updateHeaderHeight);
+    }
     
     // --- Auth Forms Handling ---
     const loginCard = document.getElementById('login-card');

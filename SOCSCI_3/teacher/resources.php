@@ -109,8 +109,11 @@ if(isset($_GET['edit'])) {
             </td>
             <td><?= $row['created_at'] ?></td>
             <td>
-                <a href="resources.php?edit=<?= $row['id'] ?>" class="btn" style="background-color: #1976D2; width: auto; display: inline-block; margin-right: 5px;">Edit</a>
-                <a href="resources.php?delete=<?= $row['id'] ?>" class="btn" style="background-color: #d32f2f; width: auto; display: inline-block;" onclick="return confirm('Are you sure?')">Delete</a>
+                <?php if($row['file_path']): ?>
+                    <button onclick="previewFile('<?= $row['file_path'] ?>')" class="btn" style="width: auto; padding: 5px 10px; margin-right: 5px;" title="View"><i class="fas fa-eye"></i></button>
+                <?php endif; ?>
+                <a href="resources.php?edit=<?= $row['id'] ?>" class="btn" style="background-color: #1976D2; width: auto; padding: 5px 10px; display: inline-block; margin-right: 5px;" title="Edit"><i class="fas fa-edit"></i></a>
+                <a href="resources.php?delete=<?= $row['id'] ?>" class="btn" style="background-color: #d32f2f; width: auto; padding: 5px 10px; display: inline-block;" onclick="return confirm('Are you sure?')" title="Delete"><i class="fas fa-trash"></i></a>
             </td>
         </tr>
         <?php endwhile; ?>

@@ -39,6 +39,14 @@ header h1 {
     flex: 1;
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* Prevent scrolling */
+}
+
+@media (min-width: 768px) {
+    .landing-container {
+        flex-direction: row;
+        height: calc(100vh - 60px); /* Subtract header height */
+    }
 }
 
 /* Carousel */
@@ -48,6 +56,13 @@ header h1 {
     height: 400px;
     overflow: hidden;
     background-color: #ddd;
+}
+
+@media (min-width: 768px) {
+    .carousel {
+        flex: 1;
+        height: 100%;
+    }
 }
 
 .carousel-inner {
@@ -83,9 +98,19 @@ header h1 {
 .auth-section {
     display: flex;
     justify-content: center;
+    align-items: center;
     padding: 2rem;
     gap: 2rem;
     flex-wrap: wrap;
+    overflow-y: auto; /* Allow scrolling within auth section if needed */
+}
+
+@media (min-width: 768px) {
+    .auth-section {
+        flex: 1;
+        height: 100%;
+        max-width: 50%;
+    }
 }
 
 .card {
@@ -95,6 +120,22 @@ header h1 {
     padding: 2rem;
     width: 100%;
     max-width: 400px;
+}
+
+.full-width-card {
+    max-width: 1000px; /* Wider for 3 columns */
+}
+
+.signup-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .signup-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .card h2 {
@@ -163,9 +204,59 @@ header h1 {
 footer {
     background-color: var(--primary-dark);
     color: var(--white);
-    padding: 2rem;
-    text-align: center;
+    padding: 2rem 2rem 1rem 2rem;
     margin-top: auto;
+}
+
+.footer-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .footer-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.footer-section h3 {
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.footer-section p {
+    margin: 0.5rem 0;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section ul li a {
+    color: var(--white);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-section ul li a:hover {
+    color: var(--primary-light);
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.9rem;
 }
 
 .hidden {
@@ -192,11 +283,33 @@ footer {
     background-color: var(--primary-dark);
     color: white;
     transition: transform 0.3s ease-in-out;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+/* Overlapping Sidebar on Mobile */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(0); /* Open by default? or closed? */
+    }
+
+    .sidebar.closed {
+        transform: translateX(-100%);
+    }
 }
 
 .sidebar.closed {
-    transform: translateX(-250px);
+    /* For desktop, maybe collapse? Or hide? */
+    /* If we use sticky on desktop, 'closed' might mean just width 0 or hidden */
     margin-right: -250px;
+    transform: translateX(-250px);
 }
 
 .sidebar nav ul {

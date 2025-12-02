@@ -111,6 +111,22 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(nextSlide, slideInterval);
     }
 
+    // --- Input Validation ---
+    const numberInputs = document.querySelectorAll('input[data-validate="number"]');
+    numberInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    });
+
+    const textInputs = document.querySelectorAll('input[data-validate="text"]');
+    textInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
+        });
+    });
+
+
     // --- Address API (PSGC Integration Mock) ---
     // In a real scenario, fetch from https://psgc.gitlab.io/api/regions/
     // Here we will just populate some dummy data or try to fetch if online.
@@ -134,38 +150,72 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(err => console.error('Error fetching regions:', err));
 
+        // Fetch All Provinces initially to allow independent selection if needed
+        // Note: This is heavy, but required if we want to allow Province selection without Region selection
+        // OR if we want them mutually exclusive.
+        // However, fetching all provinces (80+) is manageable.
+        let allProvinces = [];
+        fetch('https://psgc.gitlab.io/api/provinces/')
+            .then(response => response.json())
+            .then(data => {
+                data.sort((a,b) => a.name.localeCompare(b.name));
+                allProvinces = data;
+                // If the design was hierarchical, we wouldn't populate province yet.
+                // But request says: "select the region has a value make the province disabled, then if the user selected a valaue on province make the region field disable."
+                // This implies they can be entry points.
+                // So we populate province list initially too?
+                // If we do, we lose the filtering by Region.
+                // If we keep filtering, we can't select Province without Region.
+                // If we select Region, Province gets disabled (per request).
+                // So the only way this request makes sense is if they are mutually exclusive search criteria.
+                // I will populate provinces here.
+                data.forEach(prov => {
+                    const option = document.createElement('option');
+                    option.value = prov.code;
+                    option.textContent = prov.name;
+                    provinceSelect.appendChild(option);
+                });
+            });
+
+
         regionSelect.addEventListener('change', function() {
             const regionCode = this.value;
-            provinceSelect.innerHTML = '<option value="">Select Province</option>';
+
+            // Mutual Exclusion Logic
+            if (regionCode) {
+                provinceSelect.disabled = true;
+                provinceSelect.value = ""; // Clear province selection
+            } else {
+                provinceSelect.disabled = false;
+            }
+
+            // Standard Flow (Fetch Cities based on Region if Province is skipped/disabled)
+            // If Province is disabled, we must fetch cities for the Region directly (like NCR)
+            // or maybe the user implies we stop there?
+            // Assuming we need cities:
             citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
             barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
             
             if (regionCode) {
-                 fetch(`https://psgc.gitlab.io/api/regions/${regionCode}/provinces/`)
-                    .then(response => response.json())
-                    .then(data => {
-                         data.sort((a,b) => a.name.localeCompare(b.name));
-                         data.forEach(prov => {
-                            const option = document.createElement('option');
-                            option.value = prov.code;
-                            option.textContent = prov.name;
-                            provinceSelect.appendChild(option);
-                         });
-                         // Also fetch cities/munis for special regions like NCR which have no provinces sometimes or act differently
-                         // But for simplicity, let's assume standard hierarchy or handle NCR specifically
-                         if(data.length === 0) {
-                             // Try fetching cities directly for the region (e.g. NCR)
-                             fetchCities(regionCode, true); 
-                         }
-                    });
+                 // Try fetching cities directly for the region (common for NCR, but maybe weird for others)
+                 fetchCities(regionCode, true);
             }
         });
 
         provinceSelect.addEventListener('change', function() {
             const provinceCode = this.value;
-             citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
-             barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
-             if(provinceCode) fetchCities(provinceCode, false);
+
+            // Mutual Exclusion Logic
+            if (provinceCode) {
+                regionSelect.disabled = true;
+                regionSelect.value = ""; // Clear region selection
+            } else {
+                regionSelect.disabled = false;
+            }
+
+            citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            if(provinceCode) fetchCities(provinceCode, false);
         });
 
         citySelect.addEventListener('change', function() {

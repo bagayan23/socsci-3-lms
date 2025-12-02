@@ -74,6 +74,48 @@ $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESS
     </form>
 </div>
 
+<h3>Posted Activities</h3>
+<div style="overflow-x: auto; margin-bottom: 2rem;">
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Type</th>
+                <th>File</th>
+                <th>Date Posted</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if($activities->num_rows > 0): ?>
+                <?php while($act = $activities->fetch_assoc()): ?>
+                <tr>
+                    <td><?= htmlspecialchars($act['title']) ?></td>
+                    <td><?= htmlspecialchars($act['description']) ?></td>
+                    <td><?= ucfirst($act['type']) ?></td>
+                    <td>
+                        <?php if($act['file_path']): ?>
+                            <button onclick="previewFile('<?= $act['file_path'] ?>')" class="btn" style="padding: 5px 10px; width: auto; font-size: 0.8rem;">View</button>
+                        <?php else: ?>
+                            None
+                        <?php endif; ?>
+                    </td>
+                    <td><?= $act['created_at'] ?></td>
+                    <td>
+                         <!-- Actions as Buttons -->
+                         <button class="btn" style="padding: 5px 10px; width: auto; background-color: #2196F3;">Edit</button>
+                         <button class="btn" style="padding: 5px 10px; width: auto; background-color: #F44336;">Delete</button>
+                    </td>
+                </tr>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <tr><td colspan="6">No activities posted yet.</td></tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
 <h3>Grading Queue</h3>
 <?php
 // Get submissions that need grading
@@ -107,7 +149,7 @@ $submissions = $conn->query("
                 <td><?= htmlspecialchars($sub['title']) ?></td>
                 <td>
                     <?php if($sub['file_path']): ?>
-                        <a href="<?= $sub['file_path'] ?>" target="_blank">View File</a>
+                        <button onclick="previewFile('<?= $sub['file_path'] ?>')" class="btn" style="padding: 5px 10px; width: auto; font-size: 0.8rem;">View File</button>
                     <?php endif; ?>
                     <?php if($sub['text_submission']): ?>
                         <p><?= htmlspecialchars($sub['text_submission']) ?></p>

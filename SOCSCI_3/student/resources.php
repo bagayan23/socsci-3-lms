@@ -7,21 +7,6 @@ $resources = $conn->query("SELECT r.*, u.first_name, u.last_name FROM resources 
 
 <h2>Resources</h2>
 
-<!-- Preview Modal (Simplified as a hidden div that shows up) -->
-<div id="file-preview-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
-    <div style="background:white; padding:20px; width:80%; height:80%; position:relative; display:flex; flex-direction:column;">
-        <button onclick="document.getElementById('file-preview-modal').style.display='none'" style="align-self:flex-end; cursor:pointer;">Close</button>
-        <iframe id="preview-frame" style="width:100%; height:100%; border:none;"></iframe>
-    </div>
-</div>
-
-<script>
-function previewFile(url) {
-    document.getElementById('preview-frame').src = url;
-    document.getElementById('file-preview-modal').style.display = 'flex';
-}
-</script>
-
 <table>
     <thead>
         <tr>

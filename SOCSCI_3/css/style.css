@@ -16,6 +16,8 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    width: 100vw;
 }
 
 /* Header/Navbar */
@@ -39,6 +41,14 @@ header h1 {
     flex: 1;
     display: flex;
     flex-direction: column;
+    overflow: hidden; /* Prevent scrolling */
+}
+
+@media (min-width: 768px) {
+    .landing-container {
+        flex-direction: row;
+        height: calc(100vh - 60px); /* Subtract header height */
+    }
 }
 
 /* Carousel */
@@ -48,6 +58,13 @@ header h1 {
     height: 400px;
     overflow: hidden;
     background-color: #ddd;
+}
+
+@media (min-width: 768px) {
+    .carousel {
+        flex: 1;
+        height: 100%;
+    }
 }
 
 .carousel-inner {
@@ -83,9 +100,19 @@ header h1 {
 .auth-section {
     display: flex;
     justify-content: center;
+    align-items: center;
     padding: 2rem;
     gap: 2rem;
     flex-wrap: wrap;
+    overflow-y: auto; /* Allow scrolling within auth section if needed */
+}
+
+@media (min-width: 768px) {
+    .auth-section {
+        flex: 1;
+        height: 100%;
+        max-width: 50%;
+    }
 }
 
 .card {
@@ -95,6 +122,22 @@ header h1 {
     padding: 2rem;
     width: 100%;
     max-width: 400px;
+}
+
+.full-width-card {
+    max-width: 1000px; /* Wider for 3 columns */
+}
+
+.signup-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .signup-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .card h2 {
@@ -138,6 +181,9 @@ header h1 {
     font-size: 1rem;
     cursor: pointer;
     transition: background 0.3s;
+    text-decoration: none; /* Remove underline for links */
+    display: inline-block; /* Ensure links behave like blocks */
+    text-align: center;
 }
 
 .btn:hover {
@@ -163,9 +209,59 @@ header h1 {
 footer {
     background-color: var(--primary-dark);
     color: var(--white);
-    padding: 2rem;
-    text-align: center;
+    padding: 2rem 2rem 1rem 2rem;
     margin-top: auto;
+}
+
+.footer-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .footer-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.footer-section h3 {
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.footer-section p {
+    margin: 0.5rem 0;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section ul li a {
+    color: var(--white);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-section ul li a:hover {
+    color: var(--primary-light);
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.9rem;
 }
 
 .hidden {
@@ -185,18 +281,34 @@ footer {
 .dashboard-layout {
     display: flex;
     min-height: calc(100vh - 60px); /* Adjust based on header */
+    position: relative; /* For absolute positioning context if needed */
 }
 
 .sidebar {
     width: 250px;
     background-color: var(--primary-dark);
     color: white;
-    transition: transform 0.3s ease-in-out;
+    transition: left 0.3s ease-in-out;
+    position: fixed; /* Pop up / Overlay behavior */
+    left: -250px; /* Hidden by default */
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000; /* In front of body */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
 }
 
-.sidebar.closed {
-    transform: translateX(-250px);
-    margin-right: -250px;
+.sidebar.open {
+    left: 0; /* Visible */
+}
+
+/* Ensure main content doesn't shift */
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    width: 100%;
 }
 
 .sidebar nav ul {

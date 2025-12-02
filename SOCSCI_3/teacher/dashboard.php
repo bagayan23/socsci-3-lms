@@ -14,7 +14,7 @@ $resource_count = $resource_count_res->fetch_assoc()['count'];
 
 ?>
 
-<div class="auth-section" style="justify-content: flex-start;">
+<div class="dashboard-cards">
     <div class="card" onclick="location.href='students.php'" style="cursor:pointer; background: #fff3e0;">
         <h2>Total Students</h2>
         <p style="text-align:center; font-size: 2rem;"><?= $student_count ?></p>

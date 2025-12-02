@@ -43,10 +43,35 @@ $grades = $conn->query($grades_query);
         <div>
             <p><strong>Program:</strong> <?= htmlspecialchars($student['program']) ?></p>
             <p><strong>Year & Section:</strong> <?= htmlspecialchars($student['year_level']) ?> - <?= htmlspecialchars($student['section']) ?></p>
-            <p><strong>Address:</strong> <?= htmlspecialchars($student['street'] . ', ' . $student['barangay'] . ', ' . $student['city'] . ', ' . $student['province']) ?></p>
+            <p><strong>Address:</strong>
+                <?= htmlspecialchars($student['street']) ?>,
+                <span class="psgc-field" data-type="barangays" data-code="<?= $student['barangay'] ?>"><?= $student['barangay'] ?></span>,
+                <span class="psgc-field" data-type="cities-municipalities" data-code="<?= $student['city'] ?>"><?= $student['city'] ?></span>,
+                <span class="psgc-field" data-type="provinces" data-code="<?= $student['province'] ?>"><?= $student['province'] ?></span>
+            </p>
         </div>
     </div>
     
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fields = document.querySelectorAll('.psgc-field');
+        fields.forEach(field => {
+            const type = field.dataset.type;
+            const code = field.dataset.code;
+            if(code && type) {
+                fetch(`https://psgc.gitlab.io/api/${type}/${code}/`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data && data.name) {
+                        field.textContent = data.name;
+                    }
+                })
+                .catch(err => console.error('Failed to load PSGC data', err));
+            }
+        });
+    });
+    </script>
+
     <h3>Grades & Activities</h3>
     <table>
         <thead>

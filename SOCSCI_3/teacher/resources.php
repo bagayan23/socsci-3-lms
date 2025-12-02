@@ -102,7 +102,7 @@ if(isset($_GET['edit'])) {
             <td><?= htmlspecialchars($row['description']) ?></td>
             <td>
                 <?php if($row['file_path']): ?>
-                    <a href="#" onclick="previewFile('<?= $row['file_path'] ?>'); return false;"><?= htmlspecialchars($row['original_filename']) ?></a>
+                    <?= htmlspecialchars($row['original_filename']) ?>
                 <?php else: ?>
                     No File
                 <?php endif; ?>

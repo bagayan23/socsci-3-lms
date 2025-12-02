@@ -72,7 +72,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.querySelector('.sidebar');
     if (burgerMenu && sidebar) {
         burgerMenu.addEventListener('click', function() {
-            sidebar.classList.toggle('closed');
+            sidebar.classList.toggle('open');
+        });
+
+        // Close sidebar when clicking outside (optional but good for "pop up" feel)
+        document.addEventListener('click', function(e) {
+            if (!sidebar.contains(e.target) && !burgerMenu.contains(e.target) && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
         });
     }
 
@@ -126,6 +133,53 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+
+    // --- File Preview Modal Injection ---
+    if (!document.getElementById('file-preview-modal')) {
+        const modalHTML = `
+        <div id="file-preview-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
+            <div style="background:white; padding:20px; width:80%; height:80%; position:relative; display:flex; flex-direction:column; border-radius: 8px;">
+                <button id="close-preview" class="btn" style="width: auto; align-self: flex-end; margin-bottom: 10px; background-color: #f44336;">Close</button>
+                <div id="preview-content-wrapper" style="flex: 1; overflow: hidden; display: flex; justify-content: center; align-items: center;"></div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        document.getElementById('close-preview').addEventListener('click', function() {
+            document.getElementById('file-preview-modal').style.display = 'none';
+            document.getElementById('preview-content-wrapper').innerHTML = ''; // Clear content
+        });
+    }
+
+    // Expose preview function globally
+    window.previewFile = function(url) {
+        const modal = document.getElementById('file-preview-modal');
+        const contentWrapper = document.getElementById('preview-content-wrapper');
+        const extension = url.split('.').pop().toLowerCase();
+
+        let content = '';
+
+        if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) {
+            content = `<img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+        } else if (['mp4', 'webm', 'ogg', 'mov'].includes(extension)) {
+            content = `<video src="${url}" controls style="max-width:100%; max-height:100%;"></video>`;
+        } else if (extension === 'pdf') {
+            content = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`;
+        } else if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(extension)) {
+            // Use Google Docs Viewer
+            // Construct absolute URL logic if needed, but for now assuming relative works if public, or just fallback
+            const fullUrl = new URL(url, document.baseURI).href;
+            content = `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(fullUrl)}&embedded=true" style="width:100%; height:100%; border:none;"></iframe>`;
+        } else {
+            content = `<div style="text-align:center; padding:20px;">
+                <p>Cannot preview this file type.</p>
+                <a href="${url}" download class="btn" style="text-decoration:none;">Download File</a>
+            </div>`;
+        }
+
+        contentWrapper.innerHTML = content;
+        modal.style.display = 'flex';
+    };
 
     // --- Address API (PSGC Integration Mock) ---
     // In a real scenario, fetch from https://psgc.gitlab.io/api/regions/

@@ -96,7 +96,7 @@ $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESS
                     <td><?= ucfirst($act['type']) ?></td>
                     <td>
                         <?php if($act['file_path']): ?>
-                            <a href="<?= $act['file_path'] ?>" target="_blank" class="btn" style="padding: 5px 10px; width: auto; font-size: 0.8rem; text-decoration: none; display: inline-block;">View</a>
+                            <button onclick="previewFile('<?= $act['file_path'] ?>')" class="btn" style="padding: 5px 10px; width: auto; font-size: 0.8rem;">View</button>
                         <?php else: ?>
                             None
                         <?php endif; ?>
@@ -149,7 +149,7 @@ $submissions = $conn->query("
                 <td><?= htmlspecialchars($sub['title']) ?></td>
                 <td>
                     <?php if($sub['file_path']): ?>
-                        <a href="<?= $sub['file_path'] ?>" target="_blank" class="btn" style="padding: 5px 10px; width: auto; font-size: 0.8rem; text-decoration: none; display: inline-block;">View File</a>
+                        <button onclick="previewFile('<?= $sub['file_path'] ?>')" class="btn" style="padding: 5px 10px; width: auto; font-size: 0.8rem;">View File</button>
                     <?php endif; ?>
                     <?php if($sub['text_submission']): ?>
                         <p><?= htmlspecialchars($sub['text_submission']) ?></p>

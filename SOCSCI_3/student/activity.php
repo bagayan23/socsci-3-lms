@@ -40,7 +40,7 @@ $activities = $conn->query("
 <h2>Activities & Quizzes</h2>
 
 <?php while($row = $activities->fetch_assoc()): ?>
-    <div class="card" style="max-width: 100%; margin-bottom: 1rem;">
+    <div class="card" style="max-width: 100%; margin-top:0px; margin-bottom: 1rem;">
         <div style="display:flex; justify-content:space-between;">
             <h3><?= htmlspecialchars($row['title']) ?> <span style="font-size: 0.8em; color: #777;">(<?= ucfirst($row['type']) ?>)</span></h3>
             <span>Posted by: <?= htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?></span>

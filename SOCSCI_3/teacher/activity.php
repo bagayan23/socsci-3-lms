@@ -49,7 +49,7 @@ $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESS
 
 <h2>Activities</h2>
 
-<div class="card" style="margin-bottom: 2rem; max-width: 100%; box-sizing: border-box; overflow-x: hidden;">
+<div class="card" style="margin-bottom: 2rem; margin-top:0px; max-width: 100%; box-sizing: border-box; overflow-x: hidden;">
     <h3>Create Activity / Quiz</h3>
     <form method="POST" enctype="multipart/form-data">
         <div class="form-group">

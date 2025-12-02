@@ -19,21 +19,21 @@
         <!-- Flashcards -->
         <div class="flashcard-container">
             <div class="flashcard active">
-                <img src="images/globalization.svg" alt="Globalization">
+                <img src="images/globalization.png" alt="Globalization">
                 <div class="flashcard-caption">
                     <h3>Globalization</h3>
                     <p>Exploring the interconnectedness of modern societies.</p>
                 </div>
             </div>
             <div class="flashcard">
-                <img src="images/sustainability.svg" alt="Sustainability">
+                <img src="images/sustainability.png" alt="Sustainability">
                 <div class="flashcard-caption">
                     <h3>Sustainability</h3>
                     <p>Addressing environmental challenges in the contemporary world.</p>
                 </div>
             </div>
             <div class="flashcard">
-                <img src="images/digital_age.svg" alt="Digital Age">
+                <img src="images/digital_age.png" alt="Digital Age">
                 <div class="flashcard-caption">
                     <h3>Digital Age</h3>
                     <p>The impact of technology on human interaction.</p>
@@ -56,7 +56,7 @@
                     <div class="form-group password-wrapper">
                         <label for="login_password">Password</label>
                         <input type="password" id="login_password" name="password" class="form-control" placeholder="Enter password" required>
-                        <svg class="eye-icon toggle-password" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                        <svg class="eye-icon-login toggle-password" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                     </div>
                     <button type="submit" class="btn">Login</button>
                     <a id="show-signup" class="toggle-link">Don't have an account? Sign up</a>
@@ -110,7 +110,7 @@
                         <div class="form-group password-wrapper">
                             <label>Password</label>
                             <input type="password" name="password" class="form-control" required>
-                            <svg class="eye-icon toggle-password" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            <svg class="eye-icon-signup toggle-password" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                         </div>
 
                         <!-- Address Section -->

@@ -34,6 +34,9 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1001;
 }
 
 header h1 {

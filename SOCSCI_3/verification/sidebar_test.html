@@ -1,0 +1,54 @@
+<?php
+session_start();
+$_SESSION['user_id'] = 1;
+$_SESSION['role'] = 'teacher';
+$_SESSION['name'] = 'Jules';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Add border to visualize */
+        header { border-bottom: 2px solid red; }
+        .sidebar { border-right: 2px solid blue; }
+    </style>
+</head>
+<body>
+    <header id="main-header">
+        <div style="display:flex; align-items:center;">
+            <i class="fas fa-bars burger-menu"></i>
+            <h1>SOCSCI-3 Teacher Portal</h1>
+        </div>
+        <div class="header-user-menu">
+            <div class="user-avatar">
+                J
+            </div>
+            <div class="dropdown-menu">
+                <a href="#">Edit Account</a>
+                <a href="#">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-layout">
+        <div class="sidebar">
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Students</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="main-content">
+            <h2>Content</h2>
+            <p>Some content here.</p>
+        </div>
+    </div>
+    <script src="../js/script.js"></script>
+</body>
+</html>

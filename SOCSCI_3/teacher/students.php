@@ -27,7 +27,7 @@ $students = $conn->query("SELECT * FROM users WHERE role='student' ORDER BY last
             <td><?= htmlspecialchars($row['section']) ?></td>
             <td><?= htmlspecialchars($row['program']) ?></td>
             <td>
-                <a href="student_details.php?id=<?= $row['id'] ?>" target="_blank" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">View Details</a>
+                <a href="student_details.php?id=<?= $row['id'] ?>" target="_self" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">View Details</a>
             </td>
         </tr>
         <?php endwhile; ?>

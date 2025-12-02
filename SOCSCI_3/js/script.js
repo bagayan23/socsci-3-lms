@@ -99,23 +99,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Carousel (Simple JS Implementation) ---
-    const carouselItems = document.querySelectorAll('.carousel-item');
-    if (carouselItems.length > 0) {
-        let currentSlide = 0;
-        const slideInterval = 5000;
+    // --- Flashcards (Stack/Shuffle Effect) ---
+    const flashcards = document.querySelectorAll('.flashcard');
+    if (flashcards.length > 0) {
+        let currentCard = 0;
+        const interval = 4000;
 
-        function showSlide(index) {
-            carouselItems.forEach(item => item.classList.remove('active'));
-            carouselItems[index].classList.add('active');
+        function showCard(index) {
+            flashcards.forEach((card, i) => {
+                card.classList.remove('active', 'prev');
+                if (i === index) {
+                    card.classList.add('active');
+                } else if (i === (index - 1 + flashcards.length) % flashcards.length) {
+                    // Optional: keep the previous one exiting?
+                    // Simpler logic: Just active class handles the transition
+                }
+            });
         }
 
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % carouselItems.length;
-            showSlide(currentSlide);
+        function nextCard() {
+            // Set current to prev to trigger exit animation
+            flashcards[currentCard].classList.add('prev');
+            flashcards[currentCard].classList.remove('active');
+
+            // Increment
+            currentCard = (currentCard + 1) % flashcards.length;
+
+            // Set new active
+            flashcards[currentCard].classList.remove('prev');
+            flashcards[currentCard].classList.add('active');
         }
 
-        setInterval(nextSlide, slideInterval);
+        setInterval(nextCard, interval);
     }
 
     // --- Input Validation ---

@@ -5,6 +5,11 @@
     --text-color: #3E2723;
     --bg-color: #EFEBE9;
     --white: #FFFFFF;
+    --header-height: 80px; /* Estimate, adjusted for padding */
+}
+
+* {
+    box-sizing: border-box; /* Global fix for sizing */
 }
 
 body {
@@ -51,49 +56,69 @@ header h1 {
     }
 }
 
-/* Carousel */
-.carousel {
+/* Flashcards (replaces Carousel) */
+.flashcard-container {
     position: relative;
     width: 100%;
     height: 400px;
-    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background-color: #ddd;
+    perspective: 1000px; /* For 3D rotation effect if added */
+    overflow: hidden;
 }
 
 @media (min-width: 768px) {
-    .carousel {
+    .flashcard-container {
         flex: 1;
         height: 100%;
     }
 }
 
-.carousel-inner {
-    width: 100%;
-    height: 100%;
-}
-
-.carousel-item {
-    width: 100%;
-    height: 100%;
-    display: none;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-}
-
-.carousel-item.active {
-    display: block;
-}
-
-.carousel-caption {
+.flashcard {
     position: absolute;
-    bottom: 20px;
-    left: 0;
+    width: 80%;
+    height: 80%;
+    background: white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateX(100px) scale(0.9) rotate(5deg);
+    transition: all 0.5s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+}
+
+.flashcard.active {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0deg);
+    z-index: 2;
+}
+
+/* Previous Card (Exiting) */
+.flashcard.prev {
+    opacity: 0;
+    transform: translateX(-100px) scale(0.9) rotate(-5deg);
+}
+
+.flashcard img {
     width: 100%;
+    height: 70%;
+    object-fit: cover;
+}
+
+.flashcard-caption {
+    padding: 1rem;
     text-align: center;
-    color: white;
-    background: rgba(0,0,0,0.5);
-    padding: 10px;
+    background: var(--white);
+    color: var(--text-color);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 /* Auth Cards */
@@ -280,8 +305,8 @@ footer {
 /* Dashboard Layout */
 .dashboard-layout {
     display: flex;
-    min-height: calc(100vh - 60px); /* Adjust based on header */
-    position: relative; /* For absolute positioning context if needed */
+    min-height: calc(100vh - var(--header-height));
+    position: relative;
 }
 
 .sidebar {
@@ -289,13 +314,13 @@ footer {
     background-color: var(--primary-dark);
     color: white;
     transition: left 0.3s ease-in-out;
-    position: fixed; /* Pop up / Overlay behavior */
-    left: -250px; /* Hidden by default */
-    top: 0;
+    position: fixed;
+    left: -250px;
+    top: var(--header-height); /* Pop up below header */
     bottom: 0;
-    height: 100vh;
+    height: calc(100vh - var(--header-height));
     overflow-y: auto;
-    z-index: 1000; /* In front of body */
+    z-index: 1000;
     box-shadow: 2px 0 5px rgba(0,0,0,0.2);
 }
 

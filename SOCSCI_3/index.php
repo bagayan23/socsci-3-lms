@@ -16,26 +16,27 @@
 
     <div class="landing-container">
         
-        <!-- Carousel -->
-        <div class="carousel">
-            <div class="carousel-inner">
-                <div class="carousel-item active" style="background-image: url('https://images.unsplash.com/photo-1526304640151-b5a95f32943e?q=80&w=2070&auto=format&fit=crop');">
-                    <div class="carousel-caption">
-                        <h3>Globalization</h3>
-                        <p>Exploring the interconnectedness of modern societies.</p>
-                    </div>
+        <!-- Flashcards -->
+        <div class="flashcard-container">
+            <div class="flashcard active">
+                <img src="https://images.unsplash.com/photo-1526304640151-b5a95f32943e?q=80&w=2070&auto=format&fit=crop" alt="Globalization">
+                <div class="flashcard-caption">
+                    <h3>Globalization</h3>
+                    <p>Exploring the interconnectedness of modern societies.</p>
                 </div>
-                <div class="carousel-item" style="background-image: url('https://images.unsplash.com/photo-1529101091760-61df528caa19?q=80&w=2070&auto=format&fit=crop');">
-                    <div class="carousel-caption">
-                        <h3>Sustainability</h3>
-                        <p>Addressing environmental challenges in the contemporary world.</p>
-                    </div>
+            </div>
+            <div class="flashcard">
+                <img src="https://images.unsplash.com/photo-1529101091760-61df528caa19?q=80&w=2070&auto=format&fit=crop" alt="Sustainability">
+                <div class="flashcard-caption">
+                    <h3>Sustainability</h3>
+                    <p>Addressing environmental challenges in the contemporary world.</p>
                 </div>
-                <div class="carousel-item" style="background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop');">
-                    <div class="carousel-caption">
-                        <h3>Digital Age</h3>
-                        <p>The impact of technology on human interaction.</p>
-                    </div>
+            </div>
+            <div class="flashcard">
+                <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop" alt="Digital Age">
+                <div class="flashcard-caption">
+                    <h3>Digital Age</h3>
+                    <p>The impact of technology on human interaction.</p>
                 </div>
             </div>
         </div>

@@ -26,8 +26,8 @@ $resources = $conn->query("SELECT r.*, u.first_name, u.last_name FROM resources 
             <td><?= $row['created_at'] ?></td>
             <td>
                 <?php if($row['file_path']): ?>
-                    <button onclick="previewFile('<?= $row['file_path'] ?>')" class="btn" style="width: auto; padding: 5px 10px; margin-right: 5px;">View</button>
-                    <a href="<?= $row['file_path'] ?>" download class="btn" style="width: auto; padding: 5px 10px; background-color: #4CAF50;">Download</a>
+                    <button onclick="previewFile('<?= $row['file_path'] ?>')" class="btn" style="width: auto; padding: 5px 10px; margin-right: 5px;" title="View"><i class="fas fa-eye"></i></button>
+                    <a href="<?= $row['file_path'] ?>" download class="btn" style="width: auto; padding: 5px 10px; background-color: #4CAF50;" title="Download"><i class="fas fa-download"></i></a>
                 <?php else: ?>
                     No File
                 <?php endif; ?>

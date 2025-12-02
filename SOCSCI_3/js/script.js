@@ -1,4 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
+
+    // --- Dynamic Header Height Calculation ---
+    const header = document.querySelector('header');
+    if (header) {
+        const updateHeaderHeight = () => {
+            const height = header.offsetHeight;
+            document.documentElement.style.setProperty('--header-height', `${height}px`);
+        };
+
+        // Initial set
+        updateHeaderHeight();
+
+        // Update on resize
+        window.addEventListener('resize', updateHeaderHeight);
+    }
     
     // --- Auth Forms Handling ---
     const loginCard = document.getElementById('login-card');
@@ -148,6 +163,61 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+
+    // --- Grading Validation ---
+    window.validateGrade = function(form, maxScore) {
+        const gradeInput = form.querySelector('input[name="grade"]');
+        const grade = parseFloat(gradeInput.value);
+
+        if (isNaN(grade)) {
+            alert('Please enter a valid number');
+            return false;
+        }
+
+        if (grade < 0) {
+            alert('Grade cannot be negative.');
+            return false;
+        }
+
+        if (grade > maxScore) {
+            alert(`Grade cannot exceed the total score of ${maxScore}.`);
+            return false;
+        }
+
+        return true;
+    };
+
+    // --- Table Search & Filter ---
+    window.setupTableSearch = function(tableId, searchInputId) {
+        const table = document.querySelector(tableId); // Supports class or ID selector
+        const searchInput = document.querySelector(searchInputId);
+
+        if (!table || !searchInput) return;
+
+        searchInput.addEventListener('input', function() {
+            const filter = this.value.toLowerCase();
+            const rows = table.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                let text = row.textContent.toLowerCase();
+                if (text.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    };
+
+    // Initialize searches for known tables if inputs exist
+    // We will assume a convention: Input ID = "search-{PageName}"
+    const searchInputs = document.querySelectorAll('.search-bar');
+    searchInputs.forEach(input => {
+        const targetTable = input.dataset.target;
+        if (targetTable) {
+            setupTableSearch(targetTable, `#${input.id}`);
+        }
+    });
 
     // --- File Preview Modal Injection ---
     if (!document.getElementById('file-preview-modal')) {

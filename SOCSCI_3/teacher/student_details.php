@@ -48,7 +48,8 @@ $grades = $conn->query($grades_query);
     </div>
     
     <h3>Grades & Activities</h3>
-    <table>
+    <input type="text" id="search-student-grades" class="search-bar form-control" data-target="#table-student-grades" placeholder="Search Activity..." style="margin-bottom: 10px; max-width: 300px;">
+    <table id="table-student-grades">
         <thead>
             <tr>
                 <th>Activity</th>

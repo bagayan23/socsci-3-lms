@@ -2,6 +2,38 @@
 include '../includes/db.php';
 include '../includes/teacher_header.php';
 
+// Handle Delete
+if (isset($_GET['delete'])) {
+    $id = intval($_GET['delete']);
+    $conn->query("DELETE FROM activities WHERE id=$id AND teacher_id=" . $_SESSION['user_id']);
+    echo "<script>window.location.href='activity.php';</script>";
+}
+
+// Handle Activity Update
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_activity'])) {
+    $id = intval($_POST['activity_id']);
+    $title = $_POST['title'];
+    $description = $_POST['description'];
+    $type = $_POST['type'];
+    $total_score = intval($_POST['total_score']);
+
+    // Check if file is uploaded
+    if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
+        $upload_dir = '../uploads/';
+        $original_filename = basename($_FILES['file']['name']);
+        $file_path = $upload_dir . time() . '_' . $original_filename;
+        move_uploaded_file($_FILES['file']['tmp_name'], $file_path);
+
+        $stmt = $conn->prepare("UPDATE activities SET title=?, description=?, type=?, total_score=?, file_path=?, original_filename=? WHERE id=? AND teacher_id=?");
+        $stmt->bind_param("sssisii", $title, $description, $type, $total_score, $file_path, $original_filename, $id, $_SESSION['user_id']);
+    } else {
+        $stmt = $conn->prepare("UPDATE activities SET title=?, description=?, type=?, total_score=? WHERE id=? AND teacher_id=?");
+        $stmt->bind_param("sssiii", $title, $description, $type, $total_score, $id, $_SESSION['user_id']);
+    }
+    $stmt->execute();
+    echo "<script>window.location.href='activity.php';</script>";
+}
+
 // Handle Activity Creation
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_activity'])) {
     $title = $_POST['title'];
@@ -45,37 +77,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_grade'])) {
 }
 
 $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESSION['user_id'] . " ORDER BY created_at DESC");
+
+$edit_activity = null;
+if(isset($_GET['edit'])) {
+    $edit_id = intval($_GET['edit']);
+    $edit_activity = $conn->query("SELECT * FROM activities WHERE id=$edit_id AND teacher_id=" . $_SESSION['user_id'])->fetch_assoc();
+}
 ?>
 
 <h2>Activities</h2>
 
 <div class="card" style="margin-bottom: 2rem; max-width: 100%; box-sizing: border-box; overflow-x: hidden;">
-    <h3>Create Activity / Quiz</h3>
+    <h3><?= $edit_activity ? 'Edit Activity / Quiz' : 'Create Activity / Quiz' ?></h3>
     <form method="POST" enctype="multipart/form-data">
+        <?php if($edit_activity): ?>
+            <input type="hidden" name="activity_id" value="<?= $edit_activity['id'] ?>">
+        <?php endif; ?>
+
         <div class="form-group">
             <label>Title</label>
-            <input type="text" name="title" class="form-control" required>
+            <input type="text" name="title" class="form-control" required value="<?= $edit_activity ? htmlspecialchars($edit_activity['title']) : '' ?>">
         </div>
         <div class="form-group">
             <label>Description</label>
-            <textarea name="description" class="form-control" rows="3"></textarea>
+            <textarea name="description" class="form-control" rows="3"><?= $edit_activity ? htmlspecialchars($edit_activity['description']) : '' ?></textarea>
         </div>
         <div class="form-group">
             <label>Type</label>
             <select name="type" class="form-control">
-                <option value="activity">Activity</option>
-                <option value="quiz">Quiz</option>
+                <option value="activity" <?= ($edit_activity && $edit_activity['type'] == 'activity') ? 'selected' : '' ?>>Activity</option>
+                <option value="quiz" <?= ($edit_activity && $edit_activity['type'] == 'quiz') ? 'selected' : '' ?>>Quiz</option>
             </select>
         </div>
         <div class="form-group">
             <label>Total Score</label>
-            <input type="number" name="total_score" class="form-control" required value="100" min="1">
+            <input type="number" name="total_score" class="form-control" required value="<?= $edit_activity ? $edit_activity['total_score'] : '100' ?>" min="1">
         </div>
         <div class="form-group">
             <label>Attach File (Optional)</label>
             <input type="file" name="file" class="form-control">
+            <?php if($edit_activity && $edit_activity['file_path']): ?>
+                <p><small>Current file: <?= htmlspecialchars($edit_activity['original_filename']) ?></small></p>
+            <?php endif; ?>
         </div>
-        <button type="submit" name="create_activity" class="btn">Create</button>
+        <button type="submit" name="<?= $edit_activity ? 'update_activity' : 'create_activity' ?>" class="btn"><?= $edit_activity ? 'Update' : 'Create' ?></button>
+        <?php if($edit_activity): ?>
+            <a href="activity.php" class="btn" style="background-color: #777; width: auto; display: inline-block; margin-top: 10px;">Cancel</a>
+        <?php endif; ?>
     </form>
 </div>
 
@@ -112,8 +160,8 @@ $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESS
                     <td><?= $act['created_at'] ?></td>
                     <td>
                          <!-- Actions as Buttons -->
-                         <button class="btn" style="padding: 5px 10px; width: auto; background-color: #2196F3;">Edit</button>
-                         <button class="btn" style="padding: 5px 10px; width: auto; background-color: #F44336;">Delete</button>
+                         <a href="activity.php?edit=<?= $act['id'] ?>" class="btn" style="padding: 5px 10px; width: auto; background-color: #2196F3; display: inline-block;">Edit</a>
+                         <a href="activity.php?delete=<?= $act['id'] ?>" class="btn" style="padding: 5px 10px; width: auto; background-color: #F44336; display: inline-block;" onclick="return confirm('Are you sure you want to delete this activity?');">Delete</a>
                     </td>
                 </tr>
                 <?php endwhile; ?>

@@ -54,7 +54,7 @@ if(isset($_GET['edit'])) {
 
 <h2>Resources</h2>
 
-<div class="card" style="margin-bottom: 2rem; margin-top:0px; max-width: 100%;">
+<div class="card" style="margin-bottom: 2rem; margin-top: 0px; max-width: 100%;">
     <h3><?= $edit_resource ? 'Edit Resource' : 'Create Thread / Upload Resource' ?></h3>
     <form method="POST" enctype="multipart/form-data">
         <?php if($edit_resource): ?>

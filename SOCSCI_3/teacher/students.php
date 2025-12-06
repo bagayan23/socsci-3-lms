@@ -28,7 +28,11 @@ $students = $conn->query("SELECT * FROM users WHERE role='student' ORDER BY last
             <td><?= htmlspecialchars($row['section']) ?></td>
             <td><?= htmlspecialchars($row['program']) ?></td>
             <td>
-                <a href="student_details.php?id=<?= $row['id'] ?>" target="_self" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">View Details</a>
+                <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-start;">
+                    <a href="student_details.php?id=<?= $row['id'] ?>" class="btn" style="width: auto; padding: 0.5rem 1rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; text-decoration: none;">
+                        <i class="fas fa-eye"></i> View Details
+                    </a>
+                </div>
             </td>
         </tr>
         <?php endwhile; ?>

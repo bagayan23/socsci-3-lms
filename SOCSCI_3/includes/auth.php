@@ -65,6 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['name'] = $user['first_name'] . ' ' . $user['last_name'];
+                $_SESSION['initials'] = strtoupper(substr($user['first_name'], 0, 1) . substr($user['last_name'], 0, 1));
 
                 if ($user['role'] == 'teacher') {
                     header("Location: ../teacher/dashboard.php");

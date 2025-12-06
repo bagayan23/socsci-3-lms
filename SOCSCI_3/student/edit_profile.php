@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($stmt->execute()) {
         $msg = "Profile updated successfully!";
         $_SESSION['name'] = $first_name . ' ' . $last_name;
+        $_SESSION['initials'] = strtoupper(substr($first_name, 0, 1) . substr($last_name, 0, 1));
     } else {
         $msg = "Error updating profile.";
     }
@@ -37,8 +38,14 @@ $user = $conn->query("SELECT * FROM users WHERE id=$user_id")->fetch_assoc();
     <div style="background: #d4edda; color: #155724; padding: 10px; margin-bottom: 20px; border-radius: 5px;"><?= $msg ?></div>
 <?php endif; ?>
 
-<div class="card" style="max-width: 600px;">
+<div class="card" style="max-width: 600px; margin: 0 auto;">
     <form method="POST">
+        <div class="form-group" style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="width: 120px; height: 120px; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #6366f1, #818cf8); color: white; font-size: 3rem; font-weight: 600; border: 3px solid var(--primary-color); box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <?= strtoupper(substr($user['first_name'], 0, 1) . substr($user['last_name'], 0, 1)) ?>
+            </div>
+        </div>
+        
         <div class="form-group">
             <label>First Name</label>
             <input type="text" name="first_name" class="form-control" value="<?= htmlspecialchars($user['first_name']) ?>" required>

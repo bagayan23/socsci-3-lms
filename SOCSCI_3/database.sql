@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS grades (
     id INT AUTO_INCREMENT PRIMARY KEY,
     submission_id INT NOT NULL,
     teacher_id INT NOT NULL,
-    grade DECIMAL(5, 2),
+    grade INT,
     feedback TEXT,
     graded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (submission_id) REFERENCES submissions(id) ON DELETE CASCADE,

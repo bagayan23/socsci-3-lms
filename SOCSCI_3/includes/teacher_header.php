@@ -15,6 +15,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'teacher') {
     <title>Teacher Portal - SOCSCI-3</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
 <body>
     <header>
@@ -24,11 +26,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'teacher') {
         </div>
         <div class="header-user-menu">
             <div class="user-avatar">
-                <?= strtoupper(substr($_SESSION['name'], 0, 1)) ?>
+                <?= isset($_SESSION['initials']) ? $_SESSION['initials'] : strtoupper(substr($_SESSION['name'], 0, 1)) ?>
             </div>
             <div class="dropdown-menu">
-                <a href="edit_profile.php">Edit Account</a>
-                <a href="../includes/logout.php">Logout</a>
+                <a href="edit_profile.php"><i class="fas fa-user-edit"></i> Edit Account</a>
+                <a href="../includes/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>

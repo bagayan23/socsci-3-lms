@@ -39,8 +39,28 @@ if (isset($_POST['update_resource'])) {
     $id = intval($_POST['resource_id']);
     $subject = $_POST['subject'];
     $description = $_POST['description'];
+    $teacher_id = $_SESSION['user_id'];
     
-    $conn->query("UPDATE resources SET subject='$subject', description='$description' WHERE id=$id AND teacher_id=" . $_SESSION['user_id']);
+    // Check if new file is uploaded
+    $file_sql = "";
+    if (isset($_FILES['file']) && $_FILES['file']['error'] == 0) {
+        // Get old file path to delete it
+        $old_resource = $conn->query("SELECT file_path FROM resources WHERE id=$id AND teacher_id=$teacher_id")->fetch_assoc();
+        if ($old_resource && $old_resource['file_path'] && file_exists($old_resource['file_path'])) {
+            unlink($old_resource['file_path']);
+        }
+        
+        // Upload new file
+        $upload_dir = '../uploads/';
+        $original_filename = basename($_FILES['file']['name']);
+        $target_file = $upload_dir . time() . '_' . $original_filename;
+        
+        if (move_uploaded_file($_FILES['file']['tmp_name'], $target_file)) {
+            $file_sql = ", file_path='$target_file', original_filename='$original_filename'";
+        }
+    }
+    
+    $conn->query("UPDATE resources SET subject='$subject', description='$description' $file_sql WHERE id=$id AND teacher_id=$teacher_id");
     echo "<script>window.location.href='resources.php';</script>";
 }
 
@@ -70,12 +90,24 @@ if(isset($_GET['edit'])) {
             <textarea name="description" class="form-control" rows="3"><?= $edit_resource ? htmlspecialchars($edit_resource['description']) : '' ?></textarea>
         </div>
         
-        <?php if(!$edit_resource): ?>
         <div class="form-group">
-            <label>Attach File</label>
-            <input type="file" name="file" class="form-control">
+            <label><?= $edit_resource ? 'Replace File (optional)' : 'Attach File' ?></label>
+            <?php if($edit_resource && $edit_resource['file_path']): ?>
+                <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: #f1f5f9; border-radius: 6px; border-left: 3px solid var(--primary-color);">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-file" style="color: var(--primary-color);"></i>
+                        <span style="color: var(--text-color); font-weight: 500;">Current file:</span>
+                        <span style="color: #64748b;"><?= htmlspecialchars($edit_resource['original_filename']) ?></span>
+                    </div>
+                </div>
+            <?php endif; ?>
+            <input type="file" name="file" class="form-control" style="padding: 0.75rem;">
+            <?php if($edit_resource && $edit_resource['file_path']): ?>
+                <small style="color: #64748b; font-size: 0.875rem; display: block; margin-top: 0.5rem;">
+                    Upload a new file to replace the current one, or leave empty to keep the existing file.
+                </small>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
         
         <button type="submit" name="<?= $edit_resource ? 'update_resource' : 'upload_resource' ?>" class="btn"><?= $edit_resource ? 'Update' : 'Post Resource' ?></button>
         <?php if($edit_resource): ?>
@@ -103,18 +135,29 @@ if(isset($_GET['edit'])) {
             <td><?= htmlspecialchars($row['description']) ?></td>
             <td>
                 <?php if($row['file_path']): ?>
-                    <a href="#" onclick="previewFile('<?= $row['file_path'] ?>'); return false;"><?= htmlspecialchars($row['original_filename']) ?></a>
+                    <span style="color: var(--text-color); font-size: 0.95rem;">
+                        <i class="fas fa-file" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                        <?= htmlspecialchars($row['original_filename']) ?>
+                    </span>
                 <?php else: ?>
-                    No File
+                    <span style="color: #94a3b8; font-size: 0.875rem;">No File</span>
                 <?php endif; ?>
             </td>
             <td><?= $row['created_at'] ?></td>
             <td>
-                <?php if($row['file_path']): ?>
-                    <button onclick="previewFile('<?= $row['file_path'] ?>')" class="btn" style="width: auto; padding: 5px 10px; margin-right: 5px;" title="View"><i class="fas fa-eye"></i></button>
-                <?php endif; ?>
-                <a href="resources.php?edit=<?= $row['id'] ?>" class="btn" style="background-color: #1976D2; width: auto; padding: 5px 10px; display: inline-block; margin-right: 5px;" title="Edit"><i class="fas fa-edit"></i></a>
-                <a href="resources.php?delete=<?= $row['id'] ?>" class="btn" style="background-color: #d32f2f; width: auto; padding: 5px 10px; display: inline-block;" onclick="return confirm('Are you sure?')" title="Delete"><i class="fas fa-trash"></i></a>
+                <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-start;">
+                    <?php if($row['file_path']): ?>
+                        <button onclick="previewFile('<?= htmlspecialchars($row['file_path']) ?>', '<?= htmlspecialchars($row['original_filename'] ?? basename($row['file_path'])) ?>')" class="btn" style="width: auto; padding: 0.5rem 1rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;" title="View">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    <?php endif; ?>
+                    <a href="resources.php?edit=<?= $row['id'] ?>" class="btn" style="background-color: #2196F3; width: auto; padding: 0.5rem 1rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; text-decoration: none;" title="Edit">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <a href="resources.php?delete=<?= $row['id'] ?>" class="btn" style="background-color: #ef4444; width: auto; padding: 0.5rem 1rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; text-decoration: none;" onclick="return confirm('Are you sure you want to delete this resource?')" title="Delete">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
             </td>
         </tr>
         <?php endwhile; ?>

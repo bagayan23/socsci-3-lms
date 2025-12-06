@@ -26,12 +26,16 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             loginCard.classList.add('hidden');
             signupCard.classList.remove('hidden');
+            loginCard.style.animation = 'fadeOut 0.3s ease';
+            signupCard.style.animation = 'fadeIn 0.3s ease';
         });
 
         showLogin.addEventListener('click', function(e) {
             e.preventDefault();
             signupCard.classList.add('hidden');
             loginCard.classList.remove('hidden');
+            signupCard.style.animation = 'fadeOut 0.3s ease';
+            loginCard.style.animation = 'fadeIn 0.3s ease';
         });
     }
 
@@ -40,10 +44,14 @@ document.addEventListener('DOMContentLoaded', function() {
     togglePassword.forEach(icon => {
         icon.addEventListener('click', function() {
             const input = this.previousElementSibling;
+            if (!input) return;
+            
             const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
             input.setAttribute('type', type);
-            // Simple visual toggle (optional: change SVG path)
-            this.style.opacity = type === 'text' ? '1' : '0.6';
+            
+            // Visual feedback
+            this.style.fill = type === 'text' ? 'var(--primary-color)' : '#777';
+            this.style.transform = type === 'text' ? 'translateY(-50%) scale(1.1)' : 'translateY(-50%) scale(1)';
         });
     });
 
@@ -69,28 +77,151 @@ document.addEventListener('DOMContentLoaded', function() {
     function setRequired(container, isRequired) {
         const inputs = container.querySelectorAll('input, select');
         inputs.forEach(input => {
-            if (input.dataset.required === "true") { // Use a data attribute to mark originally required fields
+            if (input.dataset.required === "true") {
                 input.required = isRequired;
             } else if (isRequired) {
-                 // If specific fields are mandatory for students only
-                 if(['student_id', 'year', 'program', 'section'].includes(input.name)) {
-                     input.required = true;
-                 }
+                if(['student_id', 'year', 'program', 'section'].includes(input.name)) {
+                    input.required = true;
+                }
             } else {
                 input.required = false;
             }
         });
     }
 
+    // --- Form Validation Enhancement ---
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        // Real-time validation
+        const inputs = form.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
+
+            input.addEventListener('input', function() {
+                if (this.classList.contains('is-invalid')) {
+                    validateField(this);
+                }
+            });
+        });
+
+        // Form submission validation
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            const formInputs = this.querySelectorAll('.form-control');
+            
+            formInputs.forEach(input => {
+                if (!validateField(input)) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                showAlert('Please fix the errors in the form', 'error');
+                
+                // Scroll to first error
+                const firstError = this.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+            }
+        });
+    });
+
+    function validateField(field) {
+        const value = field.value.trim();
+        const type = field.type;
+        const name = field.name;
+        let isValid = true;
+        let errorMessage = '';
+
+        // Clear previous validation
+        field.classList.remove('is-invalid', 'is-valid');
+        
+        // Remove old error message
+        const oldError = field.parentElement.querySelector('.invalid-feedback');
+        if (oldError) oldError.remove();
+
+        // Check if required
+        if (field.required && !value) {
+            isValid = false;
+            errorMessage = 'This field is required';
+        }
+        // Email validation
+        else if (type === 'email' && value) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                isValid = false;
+                errorMessage = 'Please enter a valid email address';
+            }
+        }
+        // Password validation
+        else if (type === 'password' && value && name === 'password') {
+            if (value.length < 6) {
+                isValid = false;
+                errorMessage = 'Password must be at least 6 characters';
+            }
+        }
+        // Contact number validation
+        else if (name === 'contact_number' && value) {
+            if (value.length < 10) {
+                isValid = false;
+                errorMessage = 'Please enter a valid contact number';
+            }
+        }
+        // Student ID validation
+        else if (name === 'student_id' && value) {
+            const studentIdRegex = /^\d{2}-\d{4}$/;
+            if (!studentIdRegex.test(value)) {
+                isValid = false;
+                errorMessage = 'Format should be 00-0000';
+            }
+        }
+
+        // Apply validation classes
+        if (!isValid) {
+            field.classList.add('is-invalid');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'invalid-feedback';
+            errorDiv.textContent = errorMessage;
+            field.parentElement.appendChild(errorDiv);
+        } else if (value) {
+            field.classList.add('is-valid');
+        }
+
+        return isValid;
+    }
+
+    // Alert system
+    function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+        
+        const container = document.querySelector('.auth-section') || document.querySelector('.main-content');
+        if (container) {
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            setTimeout(() => {
+                alertDiv.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 5000);
+        }
+    }
+
     // --- Burger Menu ---
     const burgerMenu = document.querySelector('.burger-menu');
     const sidebar = document.querySelector('.sidebar');
     if (burgerMenu && sidebar) {
-        burgerMenu.addEventListener('click', function() {
+        burgerMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
             sidebar.classList.toggle('open');
         });
 
-        // Close sidebar when clicking outside (optional but good for "pop up" feel)
+        // Close sidebar when clicking outside
         document.addEventListener('click', function(e) {
             if (!sidebar.contains(e.target) && !burgerMenu.contains(e.target) && sidebar.classList.contains('open')) {
                 sidebar.classList.remove('open');
@@ -116,36 +247,72 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Flashcards (Stack/Shuffle Effect) ---
     const flashcards = document.querySelectorAll('.flashcard');
+    const indicators = document.querySelectorAll('.indicator');
+    
     if (flashcards.length > 0) {
         let currentCard = 0;
         const interval = 4000;
+        let autoPlayInterval;
 
         function showCard(index) {
             flashcards.forEach((card, i) => {
                 card.classList.remove('active', 'prev');
                 if (i === index) {
                     card.classList.add('active');
-                } else if (i === (index - 1 + flashcards.length) % flashcards.length) {
-                    // Optional: keep the previous one exiting?
-                    // Simpler logic: Just active class handles the transition
                 }
+            });
+
+            // Update indicators
+            indicators.forEach((indicator, i) => {
+                indicator.classList.toggle('active', i === index);
             });
         }
 
         function nextCard() {
-            // Set current to prev to trigger exit animation
             flashcards[currentCard].classList.add('prev');
             flashcards[currentCard].classList.remove('active');
 
-            // Increment
             currentCard = (currentCard + 1) % flashcards.length;
 
-            // Set new active
             flashcards[currentCard].classList.remove('prev');
             flashcards[currentCard].classList.add('active');
+            
+            // Update indicators
+            indicators.forEach((indicator, i) => {
+                indicator.classList.toggle('active', i === currentCard);
+            });
         }
 
-        setInterval(nextCard, interval);
+        function startAutoPlay() {
+            stopAutoPlay();
+            autoPlayInterval = setInterval(nextCard, interval);
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+            }
+        }
+
+        // Indicator click handlers
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', function() {
+                stopAutoPlay();
+                currentCard = index;
+                showCard(index);
+                startAutoPlay();
+            });
+        });
+
+        // Start autoplay
+        startAutoPlay();
+
+        // Pause on hover
+        const flashcardContainer = document.querySelector('.flashcard-container');
+        if (flashcardContainer) {
+            flashcardContainer.addEventListener('mouseenter', stopAutoPlay);
+            flashcardContainer.addEventListener('mouseleave', startAutoPlay);
+        }
     }
 
     // --- Input Validation ---
@@ -222,49 +389,432 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- File Preview Modal Injection ---
     if (!document.getElementById('file-preview-modal')) {
         const modalHTML = `
-        <div id="file-preview-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center;">
-            <div style="background:white; padding:20px; width:80%; height:80%; position:relative; display:flex; flex-direction:column; border-radius: 8px;">
-                <button id="close-preview" class="btn" style="width: auto; align-self: flex-end; margin-bottom: 10px; background-color: #f44336;">Close</button>
-                <div id="preview-content-wrapper" style="flex: 1; overflow: hidden; display: flex; justify-content: center; align-items: center;"></div>
+        <div id="file-preview-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; justify-content:center; align-items:center;">
+            <div style="background:white; padding:20px; width:90%; height:90%; max-width:1200px; position:relative; display:flex; flex-direction:column; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:15px; border-bottom: 2px solid #e2e8f0;">
+                    <h3 id="preview-filename" style="margin:0; color: var(--primary-color); font-size: 1.25rem;">File Preview</h3>
+                    <div style="display:flex; gap:10px;">
+                        <a id="download-file" class="btn" download style="width: auto; padding: 0.5rem 1.5rem; background: var(--success-color); text-decoration: none;">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                        <button id="close-preview" class="btn" style="width: auto; padding: 0.5rem 1.5rem; background: var(--error-color);">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                </div>
+                <div id="preview-content-wrapper" style="flex: 1; overflow: auto; display: flex; justify-content: center; align-items: center; background: #f8fafc; border-radius: 8px; padding: 20px;"></div>
             </div>
         </div>`;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
         document.getElementById('close-preview').addEventListener('click', function() {
-            document.getElementById('file-preview-modal').style.display = 'none';
-            document.getElementById('preview-content-wrapper').innerHTML = ''; // Clear content
+            const modal = document.getElementById('file-preview-modal');
+            modal.style.display = 'none';
+            document.getElementById('preview-content-wrapper').innerHTML = '';
+            document.body.style.overflow = 'auto';
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('file-preview-modal');
+                if (modal.style.display === 'flex') {
+                    document.getElementById('close-preview').click();
+                }
+            }
         });
     }
 
-    // Expose preview function globally
-    window.previewFile = function(url) {
+    // Enhanced preview function with support for all file types
+    window.previewFile = function(url, filename = '') {
         const modal = document.getElementById('file-preview-modal');
         const contentWrapper = document.getElementById('preview-content-wrapper');
-        const extension = url.split('.').pop().toLowerCase();
-
+        const filenameDisplay = document.getElementById('preview-filename');
+        const downloadBtn = document.getElementById('download-file');
+        
+        // Normalize the file path - handle both relative and absolute paths
+        let normalizedUrl = url;
+        
+        // If the URL is relative and starts with ../, remove one level
+        // This is because the JS is called from pages like student/resources.php
+        // but the uploads are at ../uploads/ relative to that page
+        if (!url.startsWith('http') && !url.startsWith('/')) {
+            // Keep the URL as-is since it's already relative to the current page
+            normalizedUrl = url;
+        }
+        
+        // Extract filename from URL if not provided
+        if (!filename) {
+            filename = normalizedUrl.split('/').pop().split('?')[0];
+        }
+        
+        filenameDisplay.textContent = decodeURIComponent(filename);
+        downloadBtn.href = normalizedUrl;
+        downloadBtn.download = filename;
+        
+        const extension = filename.split('.').pop().toLowerCase();
         let content = '';
 
-        if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) {
-            content = `<img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
-        } else if (['mp4', 'webm', 'ogg', 'mov'].includes(extension)) {
-            content = `<video src="${url}" controls style="max-width:100%; max-height:100%;"></video>`;
-        } else if (extension === 'pdf') {
-            content = `<iframe src="${url}" style="width:100%; height:100%; border:none;"></iframe>`;
-        } else if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(extension)) {
-            // Use Google Docs Viewer
-            // Construct absolute URL logic if needed, but for now assuming relative works if public, or just fallback
-            const fullUrl = new URL(url, document.baseURI).href;
-            content = `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(fullUrl)}&embedded=true" style="width:100%; height:100%; border:none;"></iframe>`;
-        } else {
-            content = `<div style="text-align:center; padding:20px;">
-                <p>Cannot preview this file type.</p>
-                <a href="${url}" download class="btn" style="text-decoration:none;">Download File</a>
-            </div>`;
+        // Image files
+        if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'].includes(extension)) {
+            content = `
+                <div style="max-width:100%; max-height:100%; display:flex; justify-content:center; align-items:center;">
+                    <img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);" 
+                         onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p>Failed to load image</p></div>'">
+                </div>`;
+        } 
+        // Video files
+        else if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'flv'].includes(extension)) {
+            content = `
+                <video controls style="max-width:100%; max-height:100%; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);"
+                       onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p>Failed to load video</p></div>'">
+                    <source src="${url}" type="video/${extension}">
+                    Your browser does not support the video tag.
+                </video>`;
+        } 
+        // Audio files
+        else if (['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac'].includes(extension)) {
+            content = `
+                <div style="text-align:center; width:100%; max-width:500px;">
+                    <i class="fas fa-music fa-5x" style="color: var(--primary-color); margin-bottom: 2rem;"></i>
+                    <audio controls style="width:100%; margin-top:1rem;"
+                           onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p>Failed to load audio</p></div>'">
+                        <source src="${url}" type="audio/${extension}">
+                        Your browser does not support the audio tag.
+                    </audio>
+                </div>`;
+        } 
+        // PDF files
+        else if (extension === 'pdf') {
+            content = `
+                <iframe src="${url}#toolbar=1&navpanes=1&scrollbar=1" 
+                        style="width:100%; height:100%; border:none; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);"
+                        onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p>Failed to load PDF. <a href=\\\"${url}\\\" download class=\\'btn\\'>Download instead</a></p></div>'">
+                </iframe>`;
+        } 
+        // Microsoft Office files (Word, Excel, PowerPoint)
+        else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension)) {
+            const fileIcon = extension.includes('doc') ? 'fa-file-word' : 
+                           extension.includes('xls') ? 'fa-file-excel' : 'fa-file-powerpoint';
+            const fileColor = extension.includes('doc') ? '#2b579a' : 
+                            extension.includes('xls') ? '#217346' : '#d24726';
+            const fileType = extension.includes('doc') ? 'Word Document' : 
+                           extension.includes('xls') ? 'Excel Spreadsheet' : 'PowerPoint Presentation';
+            
+            // Show loading state
+            content = `
+                <div id="office-content" style="width:100%; height:100%; overflow:auto; padding:20px;">
+                    <div style="text-align:center; padding:60px 20px;">
+                        <i class="fas fa-spinner fa-spin fa-3x" style="color: ${fileColor};"></i>
+                        <p style="margin-top:20px; font-size:1.1rem; color:#64748b;">Loading ${fileType}...</p>
+                    </div>
+                </div>`;
+            
+            contentWrapper.innerHTML = content;
+            
+            // Fetch and process the file
+            fetch(normalizedUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/octet-stream'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status} - File not found: ${normalizedUrl}`);
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(arrayBuffer => {
+                    const officeContent = document.getElementById('office-content');
+                    
+                    if (!officeContent) {
+                        console.error('Office content container not found');
+                        return;
+                    }
+                    
+                    if (extension === 'docx' || extension === 'doc') {
+                        // Word Document
+                        if (typeof mammoth !== 'undefined' && extension === 'docx') {
+                            // Verify the arrayBuffer is valid
+                            if (arrayBuffer.byteLength === 0) {
+                                throw new Error('File is empty');
+                            }
+                            
+                            mammoth.convertToHtml({arrayBuffer: arrayBuffer})
+                                .then(result => {
+                                    if (result.value && result.value.trim().length > 0) {
+                                        officeContent.innerHTML = `
+                                            <div style="max-width:800px; margin:0 auto; padding:20px; background:white; line-height:1.8; color:#1e293b;">
+                                                ${result.value}
+                                            </div>`;
+                                    } else {
+                                        officeContent.innerHTML = `
+                                            <div style="text-align:center; padding:40px;">
+                                                <i class="fas fa-file-word fa-3x" style="color:#2b579a; margin-bottom:20px;"></i>
+                                                <h3 style="color:#334155; margin-bottom:15px;">Document appears to be empty</h3>
+                                                <p style="color:#64748b; margin-bottom:20px;">The document was loaded but contains no visible content.</p>
+                                                <a href="${url}" download class="btn" style="text-decoration:none; display:inline-block;">
+                                                    <i class="fas fa-download"></i> Download Document
+                                                </a>
+                                            </div>`;
+                                    }
+                                    
+                                    // Log any warnings
+                                    if (result.messages && result.messages.length > 0) {
+                                        console.warn('Document conversion messages:', result.messages);
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error('Mammoth error:', err);
+                                    officeContent.innerHTML = `
+                                        <div style="text-align:center; padding:40px;">
+                                            <i class="fas fa-exclamation-circle fa-3x" style="color:#ef4444; margin-bottom:20px;"></i>
+                                            <h3 style="color:#334155; margin-bottom:15px;">Unable to Display Document</h3>
+                                            <p style="color:#64748b; margin-bottom:10px;">The document could not be converted for viewing.</p>
+                                            <p style="color:#94a3b8; font-size:0.875rem; margin-bottom:20px;">Error: ${err.message}</p>
+                                            <a href="${normalizedUrl}" download class="btn" style="text-decoration:none; display:inline-block;">
+                                                <i class="fas fa-download"></i> Download Document
+                                            </a>
+                                        </div>`;
+                                });
+                        } else if (extension === 'doc') {
+                            // Legacy .doc format - show download option
+                            officeContent.innerHTML = `
+                                <div style="text-align:center; padding:60px 40px;">
+                                    <i class="fas fa-file-word fa-5x" style="color:#2b579a; margin-bottom:30px;"></i>
+                                    <h2 style="color:#334155; margin-bottom:15px;">Legacy Word Document (.doc)</h2>
+                                    <p style="color:#64748b; margin-bottom:10px; max-width:600px; margin-left:auto; margin-right:auto; line-height:1.6;">
+                                        This is a legacy Word document format (.doc). Modern web browsers cannot display .doc files directly.
+                                    </p>
+                                    <p style="color:#64748b; margin-bottom:30px;">
+                                        Please download the file to view it with Microsoft Word or compatible software.
+                                    </p>
+                                    <a href="${normalizedUrl}" download class="btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; padding:12px 24px; font-size:1rem;">
+                                        <i class="fas fa-download"></i> Download Document
+                                    </a>
+                                </div>`;
+                        } else {
+                            officeContent.innerHTML = `
+                                <div style="text-align:center; padding:40px;">
+                                    <i class="fas ${fileIcon} fa-4x" style="color:${fileColor}; margin-bottom:20px;"></i>
+                                    <h3>Word Document</h3>
+                                    <p style="color:#64748b; margin:20px 0;">Mammoth.js library not loaded. Please download to view.</p>
+                                    <a href="${normalizedUrl}" download class="btn" style="text-decoration:none; display:inline-block;">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                </div>`;
+                        }
+                    } else if (extension === 'xlsx' || extension === 'xls') {
+                        // Excel Spreadsheet
+                        if (typeof XLSX !== 'undefined') {
+                            try {
+                                // Verify the arrayBuffer is valid
+                                if (arrayBuffer.byteLength === 0) {
+                                    throw new Error('File is empty');
+                                }
+                                
+                                const workbook = XLSX.read(arrayBuffer, {type: 'array'});
+                                let html = '<div style="padding:10px;">';
+                                
+                                if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                                    throw new Error('No sheets found in workbook');
+                                }
+                                
+                                workbook.SheetNames.forEach((sheetName, index) => {
+                                    const worksheet = workbook.Sheets[sheetName];
+                                    html += `<h2 style="color:#217346; margin:30px 0 15px 0; padding:10px; background:#f0fdf4; border-left:4px solid #217346; font-size:1.2rem;">
+                                        <i class="fas fa-table"></i> ${sheetName}
+                                    </h2>`;
+                                    html += '<div style="overflow-x:auto; margin-bottom:30px;">';
+                                    const tableHtml = XLSX.utils.sheet_to_html(worksheet, {editable: false});
+                                    if (tableHtml && tableHtml.trim().length > 0) {
+                                        html += tableHtml;
+                                    } else {
+                                        html += '<p style="color:#64748b; padding:20px;">This sheet is empty</p>';
+                                    }
+                                    html += '</div>';
+                                });
+                                
+                                html += '</div>';
+                                officeContent.innerHTML = html;
+                                
+                                // Style the tables
+                                const tables = officeContent.querySelectorAll('table');
+                                tables.forEach(table => {
+                                    table.style.width = '100%';
+                                    table.style.borderCollapse = 'collapse';
+                                    table.style.fontSize = '0.9rem';
+                                    table.style.background = 'white';
+                                    
+                                    const cells = table.querySelectorAll('th, td');
+                                    cells.forEach(cell => {
+                                        cell.style.border = '1px solid #e2e8f0';
+                                        cell.style.padding = '10px';
+                                        cell.style.textAlign = 'left';
+                                    });
+                                    
+                                    const headers = table.querySelectorAll('th');
+                                    headers.forEach(th => {
+                                        th.style.background = '#f8fafc';
+                                        th.style.fontWeight = '600';
+                                        th.style.color = '#334155';
+                                    });
+                                    
+                                    const rows = table.querySelectorAll('tr');
+                                    rows.forEach((row, idx) => {
+                                        if (idx > 0) { // Skip header
+                                            row.style.transition = 'background 0.2s';
+                                            row.addEventListener('mouseenter', function() {
+                                                this.style.background = '#f8fafc';
+                                            });
+                                            row.addEventListener('mouseleave', function() {
+                                                this.style.background = 'white';
+                                            });
+                                        }
+                                    });
+                                });
+                            } catch (err) {
+                                console.error('XLSX error:', err);
+                                officeContent.innerHTML = `
+                                    <div style="text-align:center; padding:40px;">
+                                        <i class="fas fa-exclamation-circle fa-3x" style="color:#ef4444; margin-bottom:20px;"></i>
+                                        <h3>Unable to Display Spreadsheet</h3>
+                                        <p style="color:#64748b; margin:10px 0;">The spreadsheet could not be processed.</p>
+                                        <p style="color:#94a3b8; font-size:0.875rem; margin-bottom:20px;">Error: ${err.message}</p>
+                                        <a href="${normalizedUrl}" download class="btn" style="text-decoration:none; display:inline-block;">
+                                            <i class="fas fa-download"></i> Download Spreadsheet
+                                        </a>
+                                    </div>`;
+                            }
+                        } else {
+                            officeContent.innerHTML = `
+                                <div style="text-align:center; padding:40px;">
+                                    <i class="fas ${fileIcon} fa-4x" style="color:${fileColor}; margin-bottom:20px;"></i>
+                                    <h3>Excel Spreadsheet</h3>
+                                    <p style="color:#64748b; margin:20px 0;">SheetJS library not loaded. Please download to view.</p>
+                                    <a href="${normalizedUrl}" download class="btn" style="text-decoration:none; display:inline-block;">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                </div>`;
+                        }
+                    } else if (extension === 'pptx' || extension === 'ppt') {
+                        // PowerPoint - show download option with format-specific messaging
+                        const formatMessage = extension === 'ppt' ? 
+                            'This is a legacy PowerPoint format (.ppt). ' : 
+                            '';
+                        
+                        officeContent.innerHTML = `
+                            <div style="text-align:center; padding:60px 40px;">
+                                <i class="fas fa-file-powerpoint fa-5x" style="color:#d24726; margin-bottom:30px;"></i>
+                                <h2 style="color:#334155; margin-bottom:15px;">PowerPoint Presentation ${extension === 'ppt' ? '(.ppt)' : '(.pptx)'}</h2>
+                                <p style="color:#64748b; margin-bottom:10px; max-width:600px; margin-left:auto; margin-right:auto; line-height:1.6;">
+                                    ${formatMessage}PowerPoint presentations contain complex layouts, animations, transitions, and multimedia elements 
+                                    that require Microsoft PowerPoint or compatible software to view properly.
+                                </p>
+                                <p style="color:#64748b; margin-bottom:30px;">
+                                    Please download the file to view the full presentation with all its features.
+                                </p>
+                                <a href="${normalizedUrl}" download class="btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px; padding:12px 24px; font-size:1rem;">
+                                    <i class="fas fa-download"></i> Download Presentation
+                                </a>
+                            </div>`;
+                    } else {
+                        // Should not reach here, but just in case
+                        officeContent.innerHTML = `
+                            <div style="text-align:center; padding:40px;">
+                                <i class="fas fa-file-alt fa-3x" style="color:#64748b; margin-bottom:20px;"></i>
+                                <h3>Office Document</h3>
+                                <p style="color:#64748b; margin:20px 0;">Please download the file to view its contents.</p>
+                                <a href="${normalizedUrl}" download class="btn" style="text-decoration:none; display:inline-block;">
+                                    <i class="fas fa-download"></i> Download File
+                                </a>
+                            </div>`;
+                    }
+                })
+                .catch(err => {
+                    console.error('File fetch error:', err);
+                    const officeContent = document.getElementById('office-content');
+                    if (officeContent) {
+                        officeContent.innerHTML = `
+                            <div style="text-align:center; padding:40px;">
+                                <i class="fas fa-exclamation-circle fa-3x" style="color:#ef4444; margin-bottom:20px;"></i>
+                                <h3>Error Loading File</h3>
+                                <p style="color:#64748b; margin:10px 0;">Unable to fetch the file for viewing.</p>
+                                <p style="color:#94a3b8; font-size:0.875rem; margin-bottom:20px;">Error: ${err.message}</p>
+                                <p style="color:#64748b; margin-bottom:20px;">This might be due to:</p>
+                                <ul style="color:#64748b; text-align:left; max-width:400px; margin:0 auto 30px auto; line-height:1.8;">
+                                    <li>File permissions</li>
+                                    <li>Network connectivity</li>
+                                    <li>File path issues</li>
+                                    <li>Browser security restrictions</li>
+                                </ul>
+                                <a href="${normalizedUrl}" download class="btn" style="text-decoration:none; display:inline-block;">
+                                    <i class="fas fa-download"></i> Try Downloading Instead
+                                </a>
+                            </div>`;
+                    }
+                });
+            
+            // Don't set contentWrapper.innerHTML again, we already did it above
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            return; // Exit early to prevent the default contentWrapper.innerHTML below
+        } 
+        // Text files
+        else if (['txt', 'log', 'csv', 'json', 'xml', 'md', 'html', 'css', 'js', 'php', 'py', 'java', 'cpp', 'c', 'h'].includes(extension)) {
+            // Fetch and display text content
+            fetch(url)
+                .then(response => response.text())
+                .then(text => {
+                    const previewText = text.length > 50000 ? text.substring(0, 50000) + '\\n\\n... (File truncated, download to view full content)' : text;
+                    contentWrapper.innerHTML = `
+                        <div style="width:100%; height:100%; overflow:auto; background:white; padding:20px; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                            <pre style="margin:0; white-space:pre-wrap; word-wrap:break-word; font-family:monospace; font-size:0.875rem; line-height:1.5;">${escapeHtml(previewText)}</pre>
+                        </div>`;
+                })
+                .catch(err => {
+                    contentWrapper.innerHTML = `<div style="text-align:center; color:#ef4444;"><i class="fas fa-exclamation-circle fa-3x"></i><p>Failed to load text file</p></div>`;
+                });
+            content = '<div style="text-align:center;"><i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary-color);"></i><p>Loading...</p></div>';
+        }
+        // ZIP/Archive files
+        else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
+            content = `
+                <div style="text-align:center; padding:40px;">
+                    <i class="fas fa-file-archive fa-5x" style="color: var(--primary-color); margin-bottom:2rem;"></i>
+                    <h3 style="color: var(--text-color); margin-bottom:1rem;">Archive File</h3>
+                    <p style="color:#64748b; margin-bottom:2rem;">This is a compressed archive. Download to extract and view contents.</p>
+                    <a href="${url}" download class="btn" style="text-decoration:none; display:inline-block; width:auto; padding:0.75rem 2rem;">
+                        <i class="fas fa-download"></i> Download Archive
+                    </a>
+                </div>`;
+        }
+        // Other/Unknown file types
+        else {
+            content = `
+                <div style="text-align:center; padding:40px;">
+                    <i class="fas fa-file fa-5x" style="color: var(--primary-color); margin-bottom:2rem;"></i>
+                    <h3 style="color: var(--text-color); margin-bottom:1rem;">File Preview Not Available</h3>
+                    <p style="color:#64748b; margin-bottom:1rem;">File type: .${extension}</p>
+                    <p style="color:#64748b; margin-bottom:2rem;">This file type cannot be previewed in the browser. Download to view.</p>
+                    <a href="${url}" download class="btn" style="text-decoration:none; display:inline-block; width:auto; padding:0.75rem 2rem;">
+                        <i class="fas fa-download"></i> Download File
+                    </a>
+                </div>`;
         }
 
         contentWrapper.innerHTML = content;
         modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
     };
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 
     // --- Address API (PSGC Integration Mock) ---
     // In a real scenario, fetch from https://psgc.gitlab.io/api/regions/
@@ -393,4 +943,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }
     }
+
+    // --- View Profile Picture Function ---
+    window.viewProfilePicture = function(imageUrl) {
+        const modal = document.getElementById('file-preview-modal');
+        const contentWrapper = document.getElementById('preview-content-wrapper');
+        const filenameDisplay = document.getElementById('preview-filename');
+        const downloadBtn = document.getElementById('download-file');
+        
+        filenameDisplay.textContent = 'Profile Picture';
+        downloadBtn.href = imageUrl;
+        downloadBtn.download = 'profile_picture.jpg';
+        
+        const content = `
+            <div style="max-width:100%; max-height:100%; display:flex; justify-content:center; align-items:center;">
+                <img src="${imageUrl}" style="max-width:90%; max-height:90%; object-fit:contain; border-radius:12px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);" 
+                     onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p>Failed to load profile picture</p></div>'">
+            </div>`;
+        
+        contentWrapper.innerHTML = content;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    };
 });

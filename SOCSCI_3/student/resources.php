@@ -26,12 +26,18 @@ $resources = $conn->query("SELECT r.*, u.first_name, u.last_name FROM resources 
             <td><?= htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?></td>
             <td><?= $row['created_at'] ?></td>
             <td>
-                <?php if($row['file_path']): ?>
-                    <button onclick="previewFile('<?= $row['file_path'] ?>')" class="btn" style="width: auto; padding: 5px 10px; margin-right: 5px;" title="View"><i class="fas fa-eye"></i></button>
-                    <a href="<?= $row['file_path'] ?>" download class="btn" style="width: auto; padding: 5px 10px; background-color: #4CAF50;" title="Download"><i class="fas fa-download"></i></a>
-                <?php else: ?>
-                    No File
-                <?php endif; ?>
+                <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-start;">
+                    <?php if($row['file_path']): ?>
+                        <button onclick="previewFile('<?= htmlspecialchars($row['file_path']) ?>', '<?= htmlspecialchars(basename($row['file_path'])) ?>')" class="btn" style="width: auto; padding: 0.5rem 1rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;" title="View">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <a href="<?= $row['file_path'] ?>" download class="btn" style="width: auto; padding: 0.5rem 1rem; background-color: #10b981; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; text-decoration: none;" title="Download">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    <?php else: ?>
+                        <span style="color: #94a3b8; font-size: 0.875rem;">No File</span>
+                    <?php endif; ?>
+                </div>
             </td>
         </tr>
         <?php endwhile; ?>

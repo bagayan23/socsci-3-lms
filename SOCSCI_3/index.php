@@ -7,6 +7,32 @@
     <link rel="stylesheet" href="css/style.css">
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Additional page-specific styles */
+        .flashcard-indicators {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .indicator.active {
+            background: var(--primary-color);
+            transform: scale(1.2);
+        }
+    </style>
 </head>
 <body>
 
@@ -18,26 +44,33 @@
         
         <!-- Flashcards -->
         <div class="flashcard-container">
-            <div class="flashcard active">
-                <img src="images/globalization.png" alt="Globalization">
+            <div class="flashcard active" data-index="0">
+                <img src="images/globalization.png" alt="Globalization" onerror="this.src='https://via.placeholder.com/800x600/6366f1/ffffff?text=Globalization'">
                 <div class="flashcard-caption">
                     <h3>Globalization</h3>
                     <p>Exploring the interconnectedness of modern societies.</p>
                 </div>
             </div>
-            <div class="flashcard">
-                <img src="images/sustainability.png" alt="Sustainability">
+            <div class="flashcard" data-index="1">
+                <img src="images/sustainability.png" alt="Sustainability" onerror="this.src='https://via.placeholder.com/800x600/10b981/ffffff?text=Sustainability'">
                 <div class="flashcard-caption">
                     <h3>Sustainability</h3>
                     <p>Addressing environmental challenges in the contemporary world.</p>
                 </div>
             </div>
-            <div class="flashcard">
-                <img src="images/digital_age.png" alt="Digital Age">
+            <div class="flashcard" data-index="2">
+                <img src="images/digital_age.png" alt="Digital Age" onerror="this.src='https://via.placeholder.com/800x600/f59e0b/ffffff?text=Digital+Age'">
                 <div class="flashcard-caption">
                     <h3>Digital Age</h3>
                     <p>The impact of technology on human interaction.</p>
                 </div>
+            </div>
+            
+            <!-- Flashcard Indicators -->
+            <div class="flashcard-indicators">
+                <div class="indicator active" data-slide="0"></div>
+                <div class="indicator" data-slide="1"></div>
+                <div class="indicator" data-slide="2"></div>
             </div>
         </div>
 
@@ -47,7 +80,17 @@
             <!-- Login Card -->
             <div id="login-card" class="card">
                 <h2>Sign In</h2>
-                <form action="includes/auth.php" method="POST">
+                <?php if(isset($_GET['error'])): ?>
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($_GET['error']) ?>
+                    </div>
+                <?php endif; ?>
+                <?php if(isset($_GET['success'])): ?>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
+                    </div>
+                <?php endif; ?>
+                <form action="includes/auth.php" method="POST" novalidate>
                     <input type="hidden" name="action" value="login">
                     <div class="form-group">
                         <label for="login_email">Email</label>
@@ -58,7 +101,9 @@
                         <input type="password" id="login_password" name="password" class="form-control" placeholder="Enter password" required>
                         <svg class="eye-icon-login toggle-password" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                     </div>
-                    <button type="submit" class="btn">Login</button>
+                    <button type="submit" class="btn">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
                     <a id="show-signup" class="toggle-link">Don't have an account? Sign up</a>
                 </form>
             </div>
@@ -66,7 +111,7 @@
             <!-- Signup Card -->
             <div id="signup-card" class="card hidden full-width-card">
                 <h2>Sign Up</h2>
-                <form action="includes/auth.php" method="POST">
+                <form action="includes/auth.php" method="POST" novalidate>
                     <input type="hidden" name="action" value="register">
                     
                     <div class="signup-grid">
@@ -183,7 +228,9 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn" style="margin-top: 1rem;">Sign Up</button>
+                    <button type="submit" class="btn" style="margin-top: 1rem;">
+                        <i class="fas fa-user-plus"></i> Sign Up
+                    </button>
                     <a id="show-login" class="toggle-link">Already have an account? Sign in</a>
                 </form>
             </div>

@@ -247,9 +247,8 @@ $completion_rate = $total_submissions > 0 ? round(($graded_count / $total_submis
                             </td>
                             <td style="text-align: center;">
                                 <?php if (!empty($sub['file_path'])): ?>
-                                    <button class="btn" onclick="previewFile('<?= htmlspecialchars($sub['file_path']) ?>', '<?= htmlspecialchars($sub['original_filename'] ?? basename($sub['file_path'])) ?>')" 
-                                            style="width: auto; padding: 0.5rem 1rem;">
-                                        <i class="fas fa-eye"></i> View
+                                    <button class="btn file-preview-btn" onclick="previewFile('<?= htmlspecialchars($sub['file_path']) ?>', '<?= htmlspecialchars($sub['original_filename'] ?? basename($sub['file_path'])) ?>')">
+                                        <i class="fas fa-eye"></i> <span>View</span>
                                     </button>
                                 <?php else: ?>
                                     <span style="color: #94a3b8; font-size: 0.875rem;">No File</span>

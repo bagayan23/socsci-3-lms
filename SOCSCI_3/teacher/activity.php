@@ -115,16 +115,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_grade'])) {
     $feedback = $_POST['feedback'];
     $teacher_id = $_SESSION['user_id'];
 
-    // Check if grade exists
-    $check = $conn->query("SELECT id FROM grades WHERE submission_id=$submission_id");
-    if ($check->num_rows > 0) {
-        $stmt = $conn->prepare("UPDATE grades SET grade=?, feedback=?, graded_at=NOW() WHERE submission_id=?");
-        $stmt->bind_param("dsi", $grade, $feedback, $submission_id);
+    // Verify that the teacher owns the activity for this submission
+    $verify_query = $conn->query("
+        SELECT a.teacher_id 
+        FROM submissions s 
+        JOIN activities a ON s.activity_id = a.id 
+        WHERE s.id = $submission_id AND a.teacher_id = $teacher_id
+    ");
+    
+    if ($verify_query && $verify_query->num_rows > 0) {
+        // Check if grade exists
+        $check = $conn->query("SELECT id FROM grades WHERE submission_id=$submission_id");
+        if ($check->num_rows > 0) {
+            $stmt = $conn->prepare("UPDATE grades SET grade=?, feedback=?, graded_at=NOW() WHERE submission_id=?");
+            $stmt->bind_param("dsi", $grade, $feedback, $submission_id);
+        } else {
+            $stmt = $conn->prepare("INSERT INTO grades (submission_id, teacher_id, grade, feedback) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("iids", $submission_id, $teacher_id, $grade, $feedback);
+        }
+        $stmt->execute();
     } else {
-        $stmt = $conn->prepare("INSERT INTO grades (submission_id, teacher_id, grade, feedback) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("iids", $submission_id, $teacher_id, $grade, $feedback);
+        // Not authorized to grade this submission
+        header("Location: activity.php?error=" . urlencode("You can only grade submissions for your own activities"));
+        exit();
     }
-    $stmt->execute();
 }
 
 $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESSION['user_id'] . " ORDER BY created_at DESC");
@@ -186,10 +200,14 @@ if (isset($_GET['edit_id'])) {
         <div class="form-group">
             <label>Attach File (Optional)</label>
             <?php if ($edit_activity && $edit_activity['file_path']): ?>
-                <p style="margin-bottom: 0.5rem;">
-                    Current file: <strong><?= htmlspecialchars($edit_activity['original_filename'] ?? basename($edit_activity['file_path'])) ?></strong>
-                    <button type="button" onclick="previewFile('<?= $edit_activity['file_path'] ?>', '<?= htmlspecialchars($edit_activity['original_filename'] ?? basename($edit_activity['file_path'])) ?>')" class="btn" style="width: auto; padding: 0.25rem 0.75rem; margin-left: 0.5rem;">
-                        <i class="fas fa-eye"></i> View
+                <p style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <span>Current file:</span>
+                    <span class="file-name-display">
+                        <i class="fas fa-file" style="color: var(--primary-color);"></i>
+                        <strong style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?= htmlspecialchars($edit_activity['original_filename'] ?? basename($edit_activity['file_path'])) ?></strong>
+                    </span>
+                    <button type="button" onclick="previewFile('<?= $edit_activity['file_path'] ?>', '<?= htmlspecialchars($edit_activity['original_filename'] ?? basename($edit_activity['file_path'])) ?>')" class="btn file-preview-btn">
+                        <i class="fas fa-eye"></i> <span>View</span>
                     </button>
                 </p>
             <?php endif; ?>
@@ -214,7 +232,7 @@ if (isset($_GET['edit_id'])) {
 
 <h3>Posted Activities</h3>
 <input type="text" id="search-activities" class="search-bar form-control" data-target="#table-activities" placeholder="Search Activities..." style="margin-bottom: 10px; max-width: 300px;">
-<div style="overflow-x: auto; margin-bottom: 2rem;">
+<div class="table-wrapper">
     <table id="table-activities">
         <thead>
             <tr>
@@ -236,10 +254,10 @@ if (isset($_GET['edit_id'])) {
                     <td><?= ucfirst($act['type']) ?></td>
                     <td><?= $act['total_score'] ?></td>
                     <td>
-                        <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-start;">
+                        <div class="file-preview-container">
                             <?php if($act['file_path']): ?>
-                                <button onclick="previewFile('<?= $act['file_path'] ?>', '<?= htmlspecialchars($act['original_filename'] ?? basename($act['file_path'])) ?>')" class="btn" style="width: auto; padding: 0.5rem 1rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;">
-                                    <i class="fas fa-eye"></i> View
+                                <button onclick="previewFile('<?= $act['file_path'] ?>', '<?= htmlspecialchars($act['original_filename'] ?? basename($act['file_path'])) ?>')" class="btn file-preview-btn">
+                                    <i class="fas fa-eye"></i> <span>View</span>
                                 </button>
                             <?php else: ?>
                                 <span style="color: #94a3b8; font-size: 0.875rem;">None</span>
@@ -248,12 +266,12 @@ if (isset($_GET['edit_id'])) {
                     </td>
                     <td><?= date('M d, Y h:i A', strtotime($act['created_at'])) ?></td>
                     <td>
-                        <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-start;">
-                            <a href="activity.php?edit_id=<?= $act['id'] ?>" class="btn" style="padding: 0.5rem 1rem; width: auto; background-color: #2196F3; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;">
-                                <i class="fas fa-edit"></i> Edit
+                        <div class="action-buttons-container">
+                            <a href="activity.php?edit_id=<?= $act['id'] ?>" class="btn file-preview-btn" style="background-color: #2196F3; text-decoration: none;">
+                                <i class="fas fa-edit"></i> <span>Edit</span>
                             </a>
-                            <button onclick="confirmDelete(<?= $act['id'] ?>, '<?= htmlspecialchars($act['title']) ?>')" class="btn" style="padding: 0.5rem 1rem; width: auto; background-color: #F44336; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;">
-                                <i class="fas fa-trash"></i> Delete
+                            <button onclick="confirmDelete(<?= $act['id'] ?>, '<?= htmlspecialchars($act['title']) ?>')" class="btn file-preview-btn" style="background-color: #F44336;">
+                                <i class="fas fa-trash"></i> <span>Delete</span>
                             </button>
                         </div>
                     </td>
@@ -358,7 +376,7 @@ $submissions = $conn->query("
     </div>
 </div>
 
-<div style="overflow-x: auto; margin-bottom: 2rem;">
+<div class="table-wrapper">
     <table id="table-grading">
         <thead>
             <tr>
@@ -396,11 +414,12 @@ $submissions = $conn->query("
                     <td>
                         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                             <?php if($sub['file_path']): ?>
-                                <button onclick="previewFile('<?= $sub['file_path'] ?>', '<?= htmlspecialchars($sub['original_filename'] ?? basename($sub['file_path'])) ?>')" class="btn" style="padding: 0.5rem 1rem; width: fit-content; font-size: 0.875rem; background: var(--primary-color);">
-                                    <i class="fas fa-eye"></i> View File
+                                <button onclick="previewFile('<?= $sub['file_path'] ?>', '<?= htmlspecialchars($sub['original_filename'] ?? basename($sub['file_path'])) ?>')" class="btn file-preview-btn" style="background: var(--primary-color);">
+                                    <i class="fas fa-eye"></i> <span>View File</span>
                                 </button>
-                                <small style="color: #64748b;">
-                                    <i class="fas fa-paperclip"></i> <?= htmlspecialchars($sub['original_filename'] ?? basename($sub['file_path'])) ?>
+                                <small class="file-name-display" style="color: #64748b;">
+                                    <i class="fas fa-paperclip"></i> 
+                                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?= htmlspecialchars($sub['original_filename'] ?? basename($sub['file_path'])) ?></span>
                                 </small>
                             <?php endif; ?>
                             <?php if($sub['text_submission']): ?>

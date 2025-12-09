@@ -27,15 +27,20 @@ $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f7fa;
-            padding: 20px;
+            padding: 10px;
+            margin: 0;
         }
         .viewer-container {
             max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             overflow: hidden;
+            min-height: calc(100vh - 20px);
+            display: flex;
+            flex-direction: column;
         }
         .viewer-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -70,8 +75,10 @@ $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         .viewer-content {
-            padding: 30px;
+            padding: 20px;
             min-height: 400px;
+            overflow: auto;
+            flex: 1;
         }
         .loading {
             text-align: center;
@@ -96,11 +103,16 @@ $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
             margin-bottom: 20px;
         }
         /* Excel table styles */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
             font-size: 0.9rem;
+            min-width: 600px;
         }
         th, td {
             border: 1px solid #e2e8f0;
@@ -157,12 +169,61 @@ $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
             margin-right: auto;
         }
         @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            .viewer-container {
+                border-radius: 8px;
+                min-height: calc(100vh - 10px);
+            }
             .viewer-header {
                 flex-direction: column;
                 align-items: flex-start;
+                padding: 15px 20px;
             }
             .viewer-header h1 {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
+                word-break: break-word;
+            }
+            .viewer-content {
+                padding: 15px;
+            }
+            table {
+                font-size: 0.75rem;
+            }
+            th, td {
+                padding: 8px 6px;
+            }
+            .document-content {
+                font-size: 0.95rem;
+            }
+            .download-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        @media (max-width: 480px) {
+            .viewer-header h1 {
+                font-size: 1rem;
+            }
+            .viewer-content {
+                padding: 10px;
+            }
+            table {
+                font-size: 0.7rem;
+                min-width: 100%;
+            }
+            th, td {
+                padding: 6px 4px;
+            }
+            .document-content {
+                font-size: 0.9rem;
+            }
+            .loading, .error, .ppt-message {
+                padding: 30px 15px;
+            }
+            .loading i, .error i, .ppt-message i {
+                font-size: 2rem;
             }
         }
     </style>
@@ -237,7 +298,7 @@ $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
                                 const worksheet = workbook.Sheets[sheetName];
                                 html += '<h2 style="color: #217346; margin: 30px 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #217346;">';
                                 html += '<i class="fas fa-table"></i> ' + sheetName + '</h2>';
-                                html += XLSX.utils.sheet_to_html(worksheet, {editable: false});
+                                html += '<div class="table-wrapper">' + XLSX.utils.sheet_to_html(worksheet, {editable: false}) + '</div>';
                             });
                             
                             contentDiv.innerHTML = html || '<div class="error"><p>No data found in spreadsheet</p></div>';

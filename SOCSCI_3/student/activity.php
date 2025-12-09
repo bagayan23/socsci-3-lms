@@ -47,10 +47,10 @@ $activities = $conn->query("
         </div>
         <p><?= htmlspecialchars($row['description']) ?></p>
         <?php if($row['file_path']): ?>
-            <p style="display: flex; align-items: center; gap: 0.5rem;">
+            <p style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                 <span>Attachment:</span>
-                <button onclick="previewFile('<?= htmlspecialchars($row['file_path']) ?>', '<?= htmlspecialchars(basename($row['file_path'])) ?>')" class="btn" style="width: auto; padding: 0.5rem 1rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;" title="View File">
-                    <i class="fas fa-eye"></i> View File
+                <button onclick="previewFile('<?= htmlspecialchars($row['file_path']) ?>', '<?= htmlspecialchars(basename($row['file_path'])) ?>')" class="btn file-preview-btn" title="View File">
+                    <i class="fas fa-eye"></i> <span>View File</span>
                 </button>
             </p>
         <?php endif; ?>

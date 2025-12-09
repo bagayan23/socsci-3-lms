@@ -1,5 +1,97 @@
 document.addEventListener('DOMContentLoaded', function() {
 
+    // --- Auto-wrap tables for responsive scrolling ---
+    function wrapTablesForMobile() {
+        const tables = document.querySelectorAll('table:not(.wrapped)');
+        tables.forEach(table => {
+            // Check if table is not already wrapped
+            if (!table.parentElement.classList.contains('table-wrapper')) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'table-wrapper';
+                table.parentNode.insertBefore(wrapper, table);
+                wrapper.appendChild(table);
+                table.classList.add('wrapped');
+                
+                // Add scroll indicator for touch devices
+                addScrollIndicator(wrapper);
+                wrapper.addEventListener('scroll', () => updateScrollIndicator(wrapper));
+            }
+        });
+    }
+
+    function addScrollIndicator(wrapper) {
+        // Check if table is wider than wrapper
+        const table = wrapper.querySelector('table');
+        if (table && table.offsetWidth > wrapper.offsetWidth) {
+            wrapper.setAttribute('data-scrollable', 'true');
+            
+            // Add touch hint on mobile
+            if ('ontouchstart' in window && window.innerWidth < 768) {
+                const hint = document.createElement('div');
+                hint.className = 'scroll-hint';
+                hint.innerHTML = '<i class="fas fa-arrows-alt-h"></i> Swipe to view more';
+                hint.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    right: 10px;
+                    transform: translateY(-50%);
+                    background: rgba(99, 102, 241, 0.9);
+                    color: white;
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                    font-size: 0.75rem;
+                    pointer-events: none;
+                    z-index: 10;
+                    animation: fadeOut 3s forwards;
+                `;
+                wrapper.style.position = 'relative';
+                wrapper.appendChild(hint);
+                
+                // Remove hint after animation
+                setTimeout(() => hint.remove(), 3000);
+            }
+        }
+    }
+
+    function updateScrollIndicator(wrapper) {
+        const scrollLeft = wrapper.scrollLeft;
+        const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+        
+        // Add visual feedback when scrolling
+        if (scrollLeft > 0) {
+            wrapper.classList.add('scrolled-left');
+        } else {
+            wrapper.classList.remove('scrolled-left');
+        }
+        
+        if (scrollLeft < maxScroll - 5) {
+            wrapper.classList.add('has-more-right');
+        } else {
+            wrapper.classList.remove('has-more-right');
+        }
+    }
+
+    function checkTableScroll(wrapper) {
+        // Function kept for compatibility but no longer manages shadow classes
+    }
+
+    // Initial wrap
+    wrapTablesForMobile();
+
+    // Re-wrap on dynamic content load
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                wrapTablesForMobile();
+            }
+        });
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
     // --- Dynamic Header Height Calculation ---
     const header = document.querySelector('header');
     if (header) {
@@ -119,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!isValid) {
                 e.preventDefault();
-                showAlert('Please fix the errors in the form', 'error');
+                showAlert('Please fix the errors in the form', 'error', this);
                 
                 // Scroll to first error
                 const firstError = this.querySelector('.is-invalid');
@@ -196,20 +288,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Alert system
-    function showAlert(message, type = 'info') {
+    function showAlert(message, type = 'info', form = null) {
         const alertDiv = document.createElement('div');
         alertDiv.className = `alert alert-${type}`;
-        alertDiv.textContent = message;
+        alertDiv.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i> ${message}`;
         
-        const container = document.querySelector('.auth-section') || document.querySelector('.main-content');
-        if (container) {
-            container.insertBefore(alertDiv, container.firstChild);
+        // Remove existing alerts in the form
+        if (form) {
+            const existingAlerts = form.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
             
-            setTimeout(() => {
-                alertDiv.style.animation = 'slideIn 0.3s ease reverse';
-                setTimeout(() => alertDiv.remove(), 300);
-            }, 5000);
+            // Insert at the beginning of the form
+            form.insertBefore(alertDiv, form.firstChild);
+        } else {
+            const container = document.querySelector('.auth-section') || document.querySelector('.main-content');
+            if (container) {
+                container.insertBefore(alertDiv, container.firstChild);
+            }
         }
+        
+        setTimeout(() => {
+            alertDiv.style.animation = 'slideIn 0.3s ease reverse';
+            setTimeout(() => alertDiv.remove(), 300);
+        }, 5000);
     }
 
     // --- Burger Menu ---
@@ -389,22 +490,94 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- File Preview Modal Injection ---
     if (!document.getElementById('file-preview-modal')) {
         const modalHTML = `
-        <div id="file-preview-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; justify-content:center; align-items:center;">
-            <div style="background:white; padding:20px; width:90%; height:90%; max-width:1200px; position:relative; display:flex; flex-direction:column; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:15px; border-bottom: 2px solid #e2e8f0;">
-                    <h3 id="preview-filename" style="margin:0; color: var(--primary-color); font-size: 1.25rem;">File Preview</h3>
-                    <div style="display:flex; gap:10px;">
-                        <a id="download-file" class="btn" download style="width: auto; padding: 0.5rem 1.5rem; background: var(--success-color); text-decoration: none;">
-                            <i class="fas fa-download"></i> Download
+        <div id="file-preview-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; justify-content:center; align-items:center; padding:10px;">
+            <div style="background:white; padding:15px; width:100%; height:100%; max-width:1200px; max-height:100%; position:relative; display:flex; flex-direction:column; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); overflow:hidden;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:15px; border-bottom: 2px solid #e2e8f0; flex-wrap:wrap; gap:10px; min-height:50px;">
+                    <h3 id="preview-filename" style="margin:0; color: var(--primary-color); font-size: 1.1rem; word-break:break-word; flex:1; min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; line-height:1.4;">File Preview</h3>
+                    <div style="display:flex; gap:8px; flex-shrink:0; flex-wrap:wrap;">
+                        <a id="download-file" class="btn" download style="width: auto; padding: 0.5rem 1rem; background: var(--success-color); text-decoration: none; font-size:0.875rem; display:flex; align-items:center; gap:0.25rem; white-space:nowrap;">
+                            <i class="fas fa-download"></i> <span class="btn-text">Download</span>
                         </a>
-                        <button id="close-preview" class="btn" style="width: auto; padding: 0.5rem 1.5rem; background: var(--error-color);">
-                            <i class="fas fa-times"></i> Close
+                        <button id="close-preview" class="btn" style="width: auto; padding: 0.5rem 1rem; background: var(--error-color); font-size:0.875rem; display:flex; align-items:center; gap:0.25rem; white-space:nowrap;">
+                            <i class="fas fa-times"></i> <span class="btn-text">Close</span>
                         </button>
                     </div>
                 </div>
-                <div id="preview-content-wrapper" style="flex: 1; overflow: auto; display: flex; justify-content: center; align-items: center; background: #f8fafc; border-radius: 8px; padding: 20px;"></div>
+                <div id="preview-content-wrapper" style="flex: 1; overflow: auto; display: flex; justify-content: center; align-items: center; background: #f8fafc; border-radius: 8px; padding: 15px; min-height:0;"></div>
             </div>
-        </div>`;
+        </div>
+        <style>
+            @media (max-width: 768px) {
+                #file-preview-modal > div {
+                    padding: 10px !important;
+                    border-radius: 8px !important;
+                }
+                #file-preview-modal > div > div:first-child {
+                    min-height: 60px !important;
+                }
+                #preview-filename {
+                    font-size: 0.95rem !important;
+                    max-width: calc(100vw - 200px) !important;
+                }
+                #download-file, #close-preview {
+                    padding: 0.4rem 0.75rem !important;
+                    font-size: 0.8rem !important;
+                }
+                #preview-content-wrapper {
+                    padding: 10px !important;
+                }
+            }
+            @media (max-width: 480px) {
+                #file-preview-modal {
+                    padding: 5px !important;
+                }
+                #file-preview-modal > div {
+                    padding: 8px !important;
+                    border-radius: 6px !important;
+                }
+                #file-preview-modal > div > div:first-child {
+                    flex-direction: column !important;
+                    align-items: flex-start !important;
+                    min-height: auto !important;
+                    padding-bottom: 10px !important;
+                }
+                #preview-filename {
+                    font-size: 0.875rem !important;
+                    margin-bottom: 8px !important;
+                    max-width: 100% !important;
+                    white-space: normal !important;
+                    display: -webkit-box !important;
+                    -webkit-line-clamp: 2 !important;
+                    -webkit-box-orient: vertical !important;
+                    overflow: hidden !important;
+                }
+                #file-preview-modal > div > div:first-child > div {
+                    width: 100% !important;
+                    justify-content: stretch !important;
+                }
+                #download-file, #close-preview {
+                    flex: 1 !important;
+                    justify-content: center !important;
+                    padding: 0.5rem !important;
+                    font-size: 0.8rem !important;
+                }
+                .btn-text {
+                    display: none !important;
+                }
+                #preview-content-wrapper {
+                    padding: 8px !important;
+                }
+            }
+            @media (max-width: 360px) {
+                #preview-filename {
+                    font-size: 0.8rem !important;
+                }
+                #download-file, #close-preview {
+                    padding: 0.4rem !important;
+                    font-size: 0.75rem !important;
+                }
+            }
+        </style>`;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
 
         document.getElementById('close-preview').addEventListener('click', function() {
@@ -458,16 +631,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Image files
         if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'].includes(extension)) {
             content = `
-                <div style="max-width:100%; max-height:100%; display:flex; justify-content:center; align-items:center;">
-                    <img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);" 
-                         onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p>Failed to load image</p></div>'">
+                <div style="max-width:100%; max-height:100%; display:flex; justify-content:center; align-items:center; width:100%;">
+                    <img src="${url}" class="preview-image" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);" 
+                         onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444; padding:20px;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p style=\\'margin-top:15px;\\'>Failed to load image</p></div>'">
                 </div>`;
         } 
         // Video files
         else if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'flv'].includes(extension)) {
             content = `
-                <video controls style="max-width:100%; max-height:100%; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);"
-                       onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p>Failed to load video</p></div>'">
+                <video controls class="preview-video" style="max-width:100%; max-height:70vh; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width:100%;"
+                       onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444; padding:20px;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p style=\\'margin-top:15px;\\'>Failed to load video</p></div>'">
                     <source src="${url}" type="video/${extension}">
                     Your browser does not support the video tag.
                 </video>`;
@@ -475,10 +648,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Audio files
         else if (['mp3', 'wav', 'ogg', 'aac', 'm4a', 'flac'].includes(extension)) {
             content = `
-                <div style="text-align:center; width:100%; max-width:500px;">
+                <div style="text-align:center; width:100%; max-width:500px; padding:20px;">
                     <i class="fas fa-music fa-5x" style="color: var(--primary-color); margin-bottom: 2rem;"></i>
+                    <h3 style="margin-bottom:1rem; color:#334155;">${filename}</h3>
                     <audio controls style="width:100%; margin-top:1rem;"
-                           onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p>Failed to load audio</p></div>'">
+                           onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444; padding:20px;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p style=\\'margin-top:15px;\\'>Failed to load audio</p></div>'">
                         <source src="${url}" type="audio/${extension}">
                         Your browser does not support the audio tag.
                     </audio>
@@ -487,7 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // PDF files
         else if (extension === 'pdf') {
             content = `
-                <iframe src="${url}#toolbar=1&navpanes=1&scrollbar=1" 
+                <iframe src="${url}#toolbar=1&navpanes=1&scrollbar=1" class="preview-iframe"
                         style="width:100%; height:100%; border:none; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);"
                         onerror="this.parentElement.innerHTML='<div style=\\'text-align:center; color:#ef4444;\\'><i class=\\'fas fa-exclamation-circle fa-3x\\'></i><p>Failed to load PDF. <a href=\\\"${url}\\\" download class=\\'btn\\'>Download instead</a></p></div>'">
                 </iframe>`;

@@ -1,6 +1,21 @@
 CREATE DATABASE IF NOT EXISTS socsci3_lms;
 USE socsci3_lms;
 
+CREATE TABLE IF NOT EXISTS courses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(200) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert default courses
+INSERT INTO courses (code, name) VALUES 
+('BSCS', 'BS Computer Science'),
+('BSIT', 'BS Information Technology'),
+('BA PolSci', 'BA Political Science'),
+('BSEd', 'Bachelor of Secondary Education')
+ON DUPLICATE KEY UPDATE code=code;
+
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     role ENUM('student', 'teacher') NOT NULL,

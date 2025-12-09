@@ -8,6 +8,7 @@ $students = $conn->query("SELECT * FROM users WHERE role='student' ORDER BY last
 <h2>List of Students</h2>
 
 <input type="text" id="search-students" class="search-bar form-control" data-target="#table-students" placeholder="Search Students..." style="margin-bottom: 10px; max-width: 300px;">
+<div class="table-wrapper">
 <table id="table-students">
     <thead>
         <tr>
@@ -38,5 +39,6 @@ $students = $conn->query("SELECT * FROM users WHERE role='student' ORDER BY last
         <?php endwhile; ?>
     </tbody>
 </table>
+</div>
 
 <?php include '../includes/teacher_footer.php'; ?>

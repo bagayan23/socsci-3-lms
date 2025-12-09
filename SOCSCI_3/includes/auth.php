@@ -1,8 +1,16 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 include 'db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!isset($_POST['action'])) {
+        header("Location: ../../index.php?error=Invalid request");
+        exit();
+    }
+    
     $action = $_POST['action'];
 
     if ($action == 'register') {
@@ -37,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $check->store_result();
         
         if ($check->num_rows > 0) {
-            echo "<script>alert('Email already registered!'); window.location.href='../index.php';</script>";
+            header("Location: ../../index.php?error=Email already registered");
             exit();
         }
 
@@ -45,9 +53,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("ssssssssssssssssss", $role, $email, $password, $first_name, $last_name, $middle_name, $extension_name, $birthday, $contact_number, $region, $province, $city, $barangay, $street, $student_id, $year, $program, $section);
 
         if ($stmt->execute()) {
-            echo "<script>alert('Registration successful! Please login.'); window.location.href='../index.php';</script>";
+            header("Location: ../../index.php?success=Registration successful! Please login");
+            exit();
         } else {
-            echo "Error: " . $stmt->error;
+            header("Location: ../../index.php?error=Registration failed: " . urlencode($stmt->error));
+            exit();
         }
 
     } elseif ($action == 'login') {
@@ -69,14 +79,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 if ($user['role'] == 'teacher') {
                     header("Location: ../teacher/dashboard.php");
+                    exit();
                 } else {
                     header("Location: ../student/dashboard.php");
+                    exit();
                 }
             } else {
-                echo "<script>alert('Invalid password!'); window.location.href='../index.php';</script>";
+                header("Location: ../../index.php?error=Invalid password");
+                exit();
             }
         } else {
-            echo "<script>alert('User not found!'); window.location.href='../index.php';</script>";
+            header("Location: ../../index.php?error=User not found");
+            exit();
         }
     }
 }

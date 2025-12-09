@@ -43,6 +43,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'teacher') {
                     <li><a href="students.php">Students</a></li>
                     <li><a href="resources.php">Resources</a></li>
                     <li><a href="activity.php">Activity</a></li>
+                    <li><a href="courses.php">Courses</a></li>
                 </ul>
             </nav>
         </div>

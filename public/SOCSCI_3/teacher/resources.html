@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Resources - SOCSCI-3</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+    <header>
+        <div style="display:flex; align-items:center;">
+            <i class="fas fa-bars burger-menu"></i>
+            <h1>SOCSCI-3 Teacher Portal</h1>
+        </div>
+        <div class="header-user-menu">
+            <div class="user-avatar" id="user-avatar"></div>
+            <div class="dropdown-menu">
+                <a href="edit_profile.html"><i class="fas fa-user-edit"></i> Edit Account</a>
+                <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="dashboard-layout">
+        <div class="sidebar">
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Home</a></li>
+                    <li><a href="activity.html">Activity</a></li>
+                    <li><a href="students.html">Students</a></li>
+                    <li><a href="courses.html">Courses</a></li>
+                    <li><a href="resources.html">Resources</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="main-content">
+
+<h2>Resources</h2>
+
+<button class="btn" onclick="showAddModal()" style="margin-bottom: 1rem;"><i class="fas fa-plus"></i> Add Resource</button>
+
+<input type="text" id="search-resources" class="search-bar form-control" placeholder="Search Resources..." style="margin-bottom: 10px; max-width: 300px;">
+<div class="table-wrapper">
+<table id="table-resources">
+    <thead>
+        <tr>
+            <th>Subject</th>
+            <th>Description</th>
+            <th>File</th>
+            <th>Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="resources-tbody">
+        <tr>
+            <td colspan="5" style="padding: 2rem; text-align: center;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+                Loading...
+            </td>
+        </tr>
+    </tbody>
+</table>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="resource-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3 id="modal-title">Add Resource</h3>
+        <form id="resource-form" onsubmit="saveResource(event)">
+            <input type="hidden" id="resource-id" name="resource_id">
+            
+            <div class="form-group">
+                <label>Subject *</label>
+                <input type="text" id="subject" name="subject" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Description *</label>
+                <textarea id="description" name="description" class="form-control" rows="3" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Upload File</label>
+                <input type="file" id="file" name="file" class="form-control">
+                <small id="current-file" style="display:none; color: #64748b;"></small>
+            </div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn" style="background-color: #64748b;" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+        </div>
+    </div>
+    
+    <script src="../js/auth.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        const authManager = new AuthManager();
+
+        async function loadResources() {
+            try {
+                const user = await authManager.requireAuth('teacher');
+                if (!user) return;
+
+                document.getElementById('user-avatar').textContent = user.initials;
+
+                const response = await fetch('/SOCSCI_3/api/teacher/resources.php');
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load resources');
+                }
+
+                const tbody = document.getElementById('resources-tbody');
+                
+                if (data.resources.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: #64748b;">No resources yet. Click "Add Resource" to create one.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.resources.map(resource => {
+                    return `
+                        <tr>
+                            <td>${escapeHtml(resource.subject)}</td>
+                            <td>${escapeHtml(resource.description)}</td>
+                            <td>
+                                ${resource.file_path ? `
+                                    <button onclick="previewFile('${escapeHtml(resource.file_path)}', '${escapeHtml(resource.original_filename || 'file')}')" class="btn file-preview-btn" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                ` : '<span style="color: #94a3b8; font-size: 0.875rem;">No File</span>'}
+                            </td>
+                            <td>${formatDate(new Date(resource.created_at))}</td>
+                            <td>
+                                <div class="action-buttons-container">
+                                    <button onclick="editResource(${resource.id})" class="btn file-preview-btn" title="Edit">
+                                        <i class="fas fa-edit"></i> <span>Edit</span>
+                                    </button>
+                                    <button onclick="deleteResource(${resource.id})" class="btn file-preview-btn" style="background-color: #ef4444;" title="Delete">
+                                        <i class="fas fa-trash"></i> <span>Delete</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                setupTableSearch();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load resources: ' + error.message);
+            }
+        }
+
+        function showAddModal() {
+            document.getElementById('modal-title').textContent = 'Add Resource';
+            document.getElementById('resource-form').reset();
+            document.getElementById('resource-id').value = '';
+            document.getElementById('current-file').style.display = 'none';
+            document.getElementById('resource-modal').style.display = 'flex';
+        }
+
+        async function editResource(id) {
+            try {
+                const response = await fetch('/SOCSCI_3/api/teacher/resources.php');
+                const data = await response.json();
+                
+                const resource = data.resources.find(r => r.id === id);
+                if (!resource) throw new Error('Resource not found');
+
+                document.getElementById('modal-title').textContent = 'Edit Resource';
+                document.getElementById('resource-id').value = resource.id;
+                document.getElementById('subject').value = resource.subject;
+                document.getElementById('description').value = resource.description;
+                
+                const currentFileEl = document.getElementById('current-file');
+                if (resource.original_filename) {
+                    currentFileEl.textContent = 'Current file: ' + resource.original_filename;
+                    currentFileEl.style.display = 'block';
+                } else {
+                    currentFileEl.style.display = 'none';
+                }
+                
+                document.getElementById('resource-modal').style.display = 'flex';
+            } catch (error) {
+                alert('Error loading resource: ' + error.message);
+            }
+        }
+
+        async function saveResource(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const resourceId = document.getElementById('resource-id').value;
+            
+            if (resourceId) {
+                formData.append('_method', 'PUT');
+            }
+
+            try {
+                const response = await fetch('/SOCSCI_3/api/teacher/resources.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(data.message);
+                    closeModal();
+                    loadResources();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('Failed to save resource: ' + error.message);
+            }
+        }
+
+        async function deleteResource(id) {
+            if (!confirm('Are you sure you want to delete this resource? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('_method', 'DELETE');
+                formData.append('resource_id', id);
+
+                const response = await fetch('/SOCSCI_3/api/teacher/resources.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(data.message);
+                    loadResources();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Failed to delete resource: ' + error.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('resource-modal').style.display = 'none';
+        }
+
+        function setupTableSearch() {
+            const searchInput = document.getElementById('search-resources');
+            const tbody = document.getElementById('resources-tbody');
+
+            searchInput.addEventListener('keyup', function() {
+                const filter = this.value.toLowerCase();
+                const rows = tbody.getElementsByTagName('tr');
+
+                for (let row of rows) {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                }
+            });
+        }
+
+        document.getElementById('logout-btn').addEventListener('click', async function(e) {
+            e.preventDefault();
+            await authManager.logout();
+            window.location.href = '/index.html';
+        });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(date) {
+            return date.toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric'
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('resource-modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadResources);
+    </script>
+</body>
+</html>

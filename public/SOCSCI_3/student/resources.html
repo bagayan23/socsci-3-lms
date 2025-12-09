@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Resources - SOCSCI-3</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+    <header>
+        <div style="display:flex; align-items:center;">
+            <i class="fas fa-bars burger-menu"></i>
+            <h1>SOCSCI-3 Student Portal</h1>
+        </div>
+        <div class="header-user-menu">
+            <div class="user-avatar" id="user-avatar"></div>
+            <div class="dropdown-menu">
+                <a href="edit_profile.html"><i class="fas fa-user-edit"></i> Edit Account</a>
+                <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="dashboard-layout">
+        <div class="sidebar">
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Home</a></li>
+                    <li><a href="activity.html">Activity</a></li>
+                    <li><a href="resources.html">Resources</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="main-content">
+
+<h2>Resources</h2>
+
+<input type="text" id="search-resources" class="search-bar form-control" placeholder="Search Resources..." style="margin-bottom: 10px; max-width: 300px;">
+<div class="table-wrapper">
+<table id="table-resources">
+    <thead>
+        <tr>
+            <th>Subject</th>
+            <th>Description</th>
+            <th>Teacher</th>
+            <th>Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="resources-tbody">
+        <tr>
+            <td colspan="5" style="padding: 2rem; text-align: center;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+                Loading...
+            </td>
+        </tr>
+    </tbody>
+</table>
+</div>
+
+        </div>
+    </div>
+    
+    <script src="../js/auth.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        const authManager = new AuthManager();
+
+        async function loadResources() {
+            try {
+                const user = await authManager.requireAuth('student');
+                if (!user) return;
+
+                document.getElementById('user-avatar').textContent = user.initials;
+
+                const response = await fetch('/SOCSCI_3/api/student/resources.php');
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load resources');
+                }
+
+                const tbody = document.getElementById('resources-tbody');
+                
+                if (data.resources.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: #64748b;">No resources available yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.resources.map(resource => {
+                    const createdDate = new Date(resource.created_at);
+                    
+                    return `
+                        <tr>
+                            <td>${escapeHtml(resource.subject)}</td>
+                            <td>${escapeHtml(resource.description)}</td>
+                            <td>${escapeHtml(resource.first_name + ' ' + resource.last_name)}</td>
+                            <td>${formatDate(createdDate)}</td>
+                            <td>
+                                <div class="action-buttons-container">
+                                    ${resource.file_path ? `
+                                        <button onclick="previewFile('${escapeHtml(resource.file_path)}', '${escapeHtml(resource.original_filename || 'file')}')" class="btn file-preview-btn" title="View">
+                                            <i class="fas fa-eye"></i> <span>View</span>
+                                        </button>
+                                        <a href="${escapeHtml(resource.file_path)}" download class="btn file-preview-btn" style="background-color: #10b981; text-decoration: none;" title="Download">
+                                            <i class="fas fa-download"></i> <span>Download</span>
+                                        </a>
+                                    ` : '<span style="color: #94a3b8; font-size: 0.875rem;">No File</span>'}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                // Setup search
+                setupTableSearch();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load resources: ' + error.message);
+            }
+        }
+
+        function setupTableSearch() {
+            const searchInput = document.getElementById('search-resources');
+            const table = document.getElementById('table-resources');
+            const tbody = table.querySelector('tbody');
+
+            searchInput.addEventListener('keyup', function() {
+                const filter = this.value.toLowerCase();
+                const rows = tbody.getElementsByTagName('tr');
+
+                for (let row of rows) {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                }
+            });
+        }
+
+        document.getElementById('logout-btn').addEventListener('click', async function(e) {
+            e.preventDefault();
+            await authManager.logout();
+            window.location.href = '/index.html';
+        });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(date) {
+            return date.toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadResources);
+    </script>
+</body>
+</html>

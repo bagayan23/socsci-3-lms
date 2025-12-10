@@ -45,13 +45,12 @@ if (empty($email) || empty($password)) {
     exit();
 }
 
-$stmt = $conn->prepare("SELECT id, role, password, first_name, last_name FROM users WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
+// PDO prepared statement
+$stmt = $conn->prepare("SELECT id, role, password, first_name, last_name FROM users WHERE email = :email");
+$stmt->execute(['email' => $email]);
+$user = $stmt->fetch();
 
-if ($result->num_rows == 1) {
-    $user = $result->fetch_assoc();
+if ($user) {
     if (password_verify($password, $user['password'])) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['role'] = $user['role'];
@@ -77,9 +76,6 @@ if ($result->num_rows == 1) {
 } else {
     echo json_encode(['success' => false, 'error' => 'User not found']);
 }
-
-$stmt->close();
-$conn->close();
 
 } catch (Exception $e) {
     http_response_code(500);

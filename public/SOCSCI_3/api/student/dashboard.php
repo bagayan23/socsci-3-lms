@@ -23,88 +23,83 @@ include '../../includes/db.php';
 
 $student_id = $_SESSION['user_id'];
 
-// Get total activities count
-$total_activities_res = $conn->query("SELECT COUNT(*) as count FROM activities");
-$total_activities = $total_activities_res->fetch_assoc()['count'];
+try {
+    // Get total activities count
+    $stmt = $conn->query("SELECT COUNT(*) as count FROM activities");
+    $total_activities = $stmt->fetch()['count'];
 
-// Get submitted count
-$submitted_count_res = $conn->query("
-    SELECT COUNT(*) as count FROM submissions 
-    WHERE student_id = $student_id
-");
-$submitted_count = $submitted_count_res->fetch_assoc()['count'];
+    // Get submitted count
+    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM submissions WHERE student_id = :student_id");
+    $stmt->execute(['student_id' => $student_id]);
+    $submitted_count = $stmt->fetch()['count'];
 
-// Get pending activities count
-$pending_count = $total_activities - $submitted_count;
+    // Get pending activities count
+    $pending_count = $total_activities - $submitted_count;
 
-// Get graded submissions count
-$graded_count_res = $conn->query("
-    SELECT COUNT(*) as count FROM submissions s
-    JOIN grades g ON s.id = g.submission_id
-    WHERE s.student_id = $student_id
-");
-$graded_count = $graded_count_res->fetch_assoc()['count'];
+    // Get graded submissions count (grade field is now in submissions table)
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) as count FROM submissions 
+        WHERE student_id = :student_id AND grade IS NOT NULL
+    ");
+    $stmt->execute(['student_id' => $student_id]);
+    $graded_count = $stmt->fetch()['count'];
 
-// Get average grade
-$avg_grade_res = $conn->query("
-    SELECT AVG(g.grade) as avg_grade FROM grades g
-    JOIN submissions s ON g.submission_id = s.id
-    WHERE s.student_id = $student_id
-");
-$avg_grade = $avg_grade_res->fetch_assoc()['avg_grade'] ?? 0;
+    // Get average grade (numeric grades only)
+    $stmt = $conn->prepare("
+        SELECT AVG(CAST(grade AS NUMERIC)) as avg_grade 
+        FROM submissions 
+        WHERE student_id = :student_id AND grade ~ '^[0-9]+\.?[0-9]*$'
+    ");
+    $stmt->execute(['student_id' => $student_id]);
+    $avg_grade = $stmt->fetch()['avg_grade'] ?? 0;
 
-// Get total resources
-$resources_count_res = $conn->query("SELECT COUNT(*) as count FROM resources");
-$resources_count = $resources_count_res->fetch_assoc()['count'];
+    // Get total resources
+    $stmt = $conn->query("SELECT COUNT(*) as count FROM resources");
+    $resources_count = $stmt->fetch()['count'];
 
-// Calculate completion rate
-$completion_rate = $total_activities > 0 ? round(($submitted_count / $total_activities) * 100, 1) : 0;
+    // Calculate completion rate
+    $completion_rate = $total_activities > 0 ? round(($submitted_count / $total_activities) * 100, 1) : 0;
 
-// Get recent grades
-$recent_grades_query = "
-    SELECT a.title, a.total_score, g.grade, g.feedback, g.graded_at
-    FROM grades g
-    JOIN submissions s ON g.submission_id = s.id
-    JOIN activities a ON s.activity_id = a.id
-    WHERE s.student_id = $student_id
-    ORDER BY g.graded_at DESC
-    LIMIT 5
-";
-$recent_grades_result = $conn->query($recent_grades_query);
-$recent_grades = [];
-while ($row = $recent_grades_result->fetch_assoc()) {
-    $recent_grades[] = $row;
+    // Get recent grades
+    $stmt = $conn->prepare("
+        SELECT a.title, a.total_score, s.grade, s.feedback, s.graded_at
+        FROM submissions s
+        JOIN activities a ON s.activity_id = a.id
+        WHERE s.student_id = :student_id AND s.grade IS NOT NULL
+        ORDER BY s.graded_at DESC
+        LIMIT 5
+    ");
+    $stmt->execute(['student_id' => $student_id]);
+    $recent_grades = $stmt->fetchAll();
+
+    // Get upcoming activities (without due_date for now, showing all pending)
+    $stmt = $conn->prepare("
+        SELECT a.id, a.title, a.description, a.type, a.created_at,
+               CASE WHEN s.id IS NOT NULL THEN 'submitted' ELSE 'pending' END as status
+        FROM activities a
+        LEFT JOIN submissions s ON a.id = s.activity_id AND s.student_id = :student_id
+        WHERE s.id IS NULL
+        ORDER BY a.created_at DESC
+        LIMIT 5
+    ");
+    $stmt->execute(['student_id' => $student_id]);
+    $upcoming_activities = $stmt->fetchAll();
+
+    echo json_encode([
+        'success' => true,
+        'stats' => [
+            'total_activities' => (int)$total_activities,
+            'submitted_count' => (int)$submitted_count,
+            'pending_count' => (int)$pending_count,
+            'graded_count' => (int)$graded_count,
+            'avg_grade' => round($avg_grade, 2),
+            'resources_count' => (int)$resources_count,
+            'completion_rate' => $completion_rate
+        ],
+        'recent_grades' => $recent_grades,
+        'upcoming_activities' => $upcoming_activities
+    ]);
+    
+} catch (PDOException $e) {
+    echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
 }
-
-// Get upcoming activities
-$upcoming_activities_query = "
-    SELECT a.id, a.title, a.description, a.due_date, a.type,
-           CASE WHEN s.id IS NOT NULL THEN 'submitted' ELSE 'pending' END as status
-    FROM activities a
-    LEFT JOIN submissions s ON a.id = s.activity_id AND s.student_id = $student_id
-    WHERE a.due_date >= CURDATE()
-    ORDER BY a.due_date ASC
-    LIMIT 5
-";
-$upcoming_activities_result = $conn->query($upcoming_activities_query);
-$upcoming_activities = [];
-while ($row = $upcoming_activities_result->fetch_assoc()) {
-    $upcoming_activities[] = $row;
-}
-
-echo json_encode([
-    'success' => true,
-    'stats' => [
-        'total_activities' => $total_activities,
-        'submitted_count' => $submitted_count,
-        'pending_count' => $pending_count,
-        'graded_count' => $graded_count,
-        'avg_grade' => round($avg_grade, 2),
-        'resources_count' => $resources_count,
-        'completion_rate' => $completion_rate
-    ],
-    'recent_grades' => $recent_grades,
-    'upcoming_activities' => $upcoming_activities
-]);
-
-$conn->close();

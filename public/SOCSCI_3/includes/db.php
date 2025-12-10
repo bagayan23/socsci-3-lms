@@ -3,22 +3,32 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0); // Don't display errors in output
 ini_set('log_errors', 1); // Log errors instead
 
-$servername = "sql300.infinityfree.com";
-$username = "if0_40630767";
-$password = "BXdaEd010MtfF";
-$dbname = "if0_40630767_socsci3_lms";
+// PostgreSQL connection
+$host = 'dpg-d4sva8pr0fns73f3k6qg-a.oregon-postgres.render.com';
+$db   = 'socsci3_lms';
+$user = 'wilms';
+$pass = 'gZ6rRJ8ER3H2pktUGd0ZQaCFNg7lcWDa';
+$port = '5432';
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+// DSN with SSL mode required for Render.com
+$dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
 
-// Check connection
-if ($conn->connect_error) {
-    // Return JSON error instead of die()
+try {
+    $conn = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false
+    ]);
+} catch (PDOException $e) {
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'error' => 'Database connection failed']);
+    echo json_encode(['success' => false, 'error' => 'Database connection failed: ' . $e->getMessage()]);
     exit();
 }
 
-// Set charset to utf8mb4
-$conn->set_charset("utf8mb4");
+// Helper function to execute queries (for compatibility)
+function executeQuery($conn, $sql, $params = []) {
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($params);
+    return $stmt;
+}
 ?>

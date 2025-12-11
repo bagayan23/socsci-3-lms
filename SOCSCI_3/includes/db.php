@@ -2,10 +2,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$servername = "sql300.infinityfree.com";
-$username = "if0_40630767";
-$password = "BXdaEd010MtfF";
-$dbname = "if0_40630767_socsci3_lms";
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "socsci3_lms";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);

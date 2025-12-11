@@ -1,5 +1,12 @@
 <?php
+session_start();
 include '../includes/db.php';
+
+// Check if user is logged in and is a teacher
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
+    header("Location: ../index.php");
+    exit();
+}
 
 // Handle Activity Deletion
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_activity'])) {
@@ -394,7 +401,7 @@ $submissions = $conn->query("
             <?php if($submissions->num_rows > 0): ?>
                 <?php while($sub = $submissions->fetch_assoc()): 
                     $isGraded = $sub['grade'] !== null;
-                    $rowStyle = $isGraded ? '' : 'background-color: #fef3c7;';
+                    $rowStyle = '';
                 ?>
                 <tr style="<?= $rowStyle ?>">
                     <td>

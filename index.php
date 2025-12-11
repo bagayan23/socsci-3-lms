@@ -1,3 +1,11 @@
+<?php
+session_start();
+include 'SOCSCI_3/includes/db.php';
+
+$courses_query = $conn->query("SELECT * FROM courses ORDER BY code ASC");
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,11 +26,6 @@
             gap: 10px;
             z-index: 10;
         }
-<?php 
-// Load available courses from database
-include 'SOCSCI_3/includes/db.php';
-$courses_query = $conn->query("SELECT * FROM courses ORDER BY code ASC");
-?>
         
         .indicator {
             width: 12px;
@@ -81,22 +84,18 @@ $courses_query = $conn->query("SELECT * FROM courses ORDER BY code ASC");
 
         <!-- Auth Section -->
         <div class="auth-section">
-            
+            <?php if ($flash): ?>
+                <div class="alert alert-<?= htmlspecialchars($flash['type']) ?>" role="alert" aria-live="assertive">
+                    <i class="fas fa-<?= $flash['type'] === 'error' ? 'exclamation-circle' : 'check-circle' ?>"></i>
+                    <?= htmlspecialchars($flash['message']) ?>
+                </div>
+            <?php endif; ?>
+
             <!-- Login Card -->
             <div id="login-card" class="card">
                 <h2>Sign In</h2>
                 <form action="SOCSCI_3/includes/auth.php" method="POST" novalidate>
                     <input type="hidden" name="action" value="login">
-                    <?php if(isset($_GET['error'])): ?>
-                        <div class="alert alert-error">
-                            <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($_GET['error']) ?>
-                        </div>
-                    <?php endif; ?>
-                    <?php if(isset($_GET['success'])): ?>
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_GET['success']) ?>
-                        </div>
-                    <?php endif; ?>
                     <div class="form-group">
                         <label for="login_email">Email</label>
                         <input type="email" id="login_email" name="email" class="form-control" placeholder="Enter your email" required>
@@ -109,7 +108,7 @@ $courses_query = $conn->query("SELECT * FROM courses ORDER BY code ASC");
                     <button type="submit" class="btn">
                         <i class="fas fa-sign-in-alt"></i> Login
                     </button>
-                    <a id="show-signup" class="toggle-link">Don't have an account? Sign up</a>
+                    <button type="button" id="show-signup" class="toggle-link" aria-label="Switch to sign up form">Don't have an account? Sign up</button>
                 </form>
             </div>
 
@@ -151,7 +150,7 @@ $courses_query = $conn->query("SELECT * FROM courses ORDER BY code ASC");
                         </div>
                         <div class="form-group">
                             <label>Contact Number</label>
-                            <input type="text" name="contact_number" class="form-control" data-validate="number" required>
+                            <input type="text" name="contact_number" class="form-control" data-validate="number" required inputmode="numeric" pattern="^(?:\+63|63|0)9\d{9}$" maxlength="13" placeholder="09123456789">
                         </div>
                         <div class="form-group">
                             <label>Email</label>
@@ -245,7 +244,7 @@ $courses_query = $conn->query("SELECT * FROM courses ORDER BY code ASC");
                     <button type="submit" class="btn" style="margin-top: 1rem;">
                         <i class="fas fa-user-plus"></i> Sign Up
                     </button>
-                    <a id="show-login" class="toggle-link">Already have an account? Sign in</a>
+                    <button type="button" id="show-login" class="toggle-link" aria-label="Switch to sign in form">Already have an account? Sign in</button>
                 </form>
             </div>
 

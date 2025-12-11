@@ -259,9 +259,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // Contact number validation
         else if (name === 'contact_number' && value) {
-            if (value.length < 10) {
+            const sanitizedValue = value.replace(/[\s-]/g, '');
+            const philippinePhoneRegex = /^(?:\+63|63|0)9\d{9}$/;
+
+            if (!philippinePhoneRegex.test(sanitizedValue)) {
                 isValid = false;
-                errorMessage = 'Please enter a valid contact number';
+                errorMessage = 'Enter a valid Philippine mobile number (e.g., 09123456789)';
             }
         }
         // Student ID validation
@@ -420,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const numberInputs = document.querySelectorAll('input[data-validate="number"]');
     numberInputs.forEach(input => {
         input.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '');
+            this.value = this.value.replace(/[^0-9+]/g, '');
         });
     });
 

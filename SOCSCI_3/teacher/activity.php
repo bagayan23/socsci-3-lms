@@ -394,7 +394,7 @@ $submissions = $conn->query("
                 <th style="min-width: 200px;"><i class="fas fa-file-alt"></i> Submission</th>
                 <th style="min-width: 150px;"><i class="fas fa-calendar"></i> Date Submitted</th>
                 <th style="min-width: 120px; text-align: center;"><i class="fas fa-star"></i> Grade</th>
-                <th style="min-width: 280px;"><i class="fas fa-edit"></i> Action</th>
+                <th style="min-width: 220px;"><i class="fas fa-edit"></i> Action</th>
             </tr>
         </thead>
         <tbody>
@@ -473,20 +473,16 @@ $submissions = $conn->query("
                         <?php endif; ?>
                     </td>
                     <td>
-                        <form method="POST" style="display:flex; gap:0.5rem; align-items: flex-start; flex-wrap: wrap;" onsubmit="return validateGrade(this, <?= $sub['total_score'] ?>)">
+                        <form method="POST" style="display: block; width: 100%;" onsubmit="return validateGrade(this, <?= $sub['total_score'] ?>)">
                             <input type="hidden" name="submission_id" value="<?= $sub['sub_id'] ?>">
                             
-                            <div style="flex: 1; min-width: 200px;">
-                                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                    <div style="flex: 1;">
-                                        <input type="number" name="grade" placeholder="Grade" class="form-control" style="padding: 0.5rem; font-size: 0.875rem;" required value="<?= $sub['grade'] ?>" min="0" max="<?= $sub['total_score'] ?>">
-                                        <small style="color: #64748b; font-size: 0.75rem; margin-top: 0.25rem; display: block;">
-                                            Max: <?= $sub['total_score'] ?> pts
-                                        </small>
-                                    </div>
-                                </div>
-                                <input type="text" name="feedback" placeholder="Add feedback (optional)" class="form-control" value="<?= htmlspecialchars($sub['feedback'] ?? '') ?>" style="padding: 0.5rem; font-size: 0.875rem; margin-bottom: 0.5rem;">
-                                <button type="submit" name="submit_grade" class="btn" style="width: 100%; padding: 0.5rem; font-size: 0.875rem; background: var(--primary-color);">
+                            <div style="width: 100%; min-width: 160px;">
+                                <input type="number" name="grade" placeholder="Grade" class="form-control" style="padding: 0.5rem; font-size: 0.875rem; width: 100%; box-sizing: border-box; margin-bottom: 0.25rem;" required value="<?= $sub['grade'] ?>" min="0" max="<?= $sub['total_score'] ?>">
+                                <small style="color: #64748b; font-size: 0.75rem; display: block; margin-bottom: 0.5rem;">
+                                    Max: <?= $sub['total_score'] ?> pts
+                                </small>
+                                <input type="text" name="feedback" placeholder="Add feedback (optional)" class="form-control" value="<?= htmlspecialchars($sub['feedback'] ?? '') ?>" style="padding: 0.5rem; font-size: 0.875rem; width: 100%; box-sizing: border-box; margin-bottom: 0.5rem;">
+                                <button type="submit" name="submit_grade" class="btn" style="width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; background: var(--primary-color); box-sizing: border-box; white-space: nowrap;">
                                     <i class="fas fa-<?= $isGraded ? 'sync' : 'check' ?>"></i> <?= $isGraded ? 'Update Grade' : 'Submit Grade' ?>
                                 </button>
                             </div>

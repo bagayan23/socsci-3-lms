@@ -51,11 +51,13 @@ if (empty($role) || empty($email) || empty($password) || empty($first_name) || e
     exit();
 }
 
-// Check if email exists (PDO)
-$check = $conn->prepare("SELECT id FROM users WHERE email = :email");
-$check->execute(['email' => $email]);
+// Check if email exists
+$check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+$check->bind_param("s", $email);
+$check->execute();
+$check->store_result();
 
-if ($check->fetch()) {
+if ($check->num_rows > 0) {
     echo json_encode(['success' => false, 'error' => 'Email already registered']);
     exit();
 }
@@ -63,29 +65,11 @@ if ($check->fetch()) {
 // Hash password
 $password_hash = password_hash($password, PASSWORD_BCRYPT);
 
-// Insert user (PDO with named parameters)
-$stmt = $conn->prepare("INSERT INTO users (role, email, password, first_name, last_name, middle_name, extension_name, birthday, contact_number, region, province, city, barangay, street, student_id, year_level, program, section) VALUES (:role, :email, :password, :first_name, :last_name, :middle_name, :extension_name, :birthday, :contact_number, :region, :province, :city, :barangay, :street, :student_id, :year_level, :program, :section)");
+// Insert user
+$stmt = $conn->prepare("INSERT INTO users (role, email, password, first_name, last_name, middle_name, extension_name, birthday, contact_number, region, province, city, barangay, street, student_school_id, year_level, program, section) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("ssssssssssssssssss", $role, $email, $password_hash, $first_name, $last_name, $middle_name, $extension_name, $birthday, $contact_number, $region, $province, $city, $barangay, $street, $student_id, $year, $program, $section);
 
-if ($stmt->execute([
-    'role' => $role,
-    'email' => $email,
-    'password' => $password_hash,
-    'first_name' => $first_name,
-    'last_name' => $last_name,
-    'middle_name' => $middle_name,
-    'extension_name' => $extension_name,
-    'birthday' => $birthday,
-    'contact_number' => $contact_number,
-    'region' => $region,
-    'province' => $province,
-    'city' => $city,
-    'barangay' => $barangay,
-    'street' => $street,
-    'student_id' => $student_id,
-    'year_level' => $year,
-    'program' => $program,
-    'section' => $section
-])) {
+if ($stmt->execute()) {
     echo json_encode([
         'success' => true,
         'message' => 'Registration successful! Please login'
@@ -93,6 +77,10 @@ if ($stmt->execute([
 } else {
     echo json_encode([
         'success' => false,
-        'error' => 'Registration failed'
+        'error' => 'Registration failed: ' . $stmt->error
     ]);
 }
+
+$stmt->close();
+$check->close();
+$conn->close();

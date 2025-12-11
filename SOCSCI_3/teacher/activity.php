@@ -1,6 +1,5 @@
 <?php
 include '../includes/db.php';
-include '../includes/teacher_header.php';
 
 // Handle Activity Deletion
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_activity'])) {
@@ -140,6 +139,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_grade'])) {
         exit();
     }
 }
+
+// Include header after all POST processing is complete
+include '../includes/teacher_header.php';
 
 $activities = $conn->query("SELECT * FROM activities WHERE teacher_id=" . $_SESSION['user_id'] . " ORDER BY created_at DESC");
 

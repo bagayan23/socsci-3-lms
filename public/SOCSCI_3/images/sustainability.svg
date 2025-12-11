@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
-  <rect width="800" height="600" fill="#f1f8e9"/>
-  <path d="M400,100 L500,300 L300,300 Z" fill="#33691e"/>
-  <rect x="380" y="300" width="40" height="100" fill="#5d4037"/>
-  <circle cx="600" cy="200" r="50" fill="#ffeb3b"/>
-  <text x="400" y="550" font-family="Arial" font-size="40" text-anchor="middle" fill="#33691e">Sustainability</text>
-</svg>

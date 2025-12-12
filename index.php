@@ -262,15 +262,36 @@ $courses_query = $conn->query("SELECT * FROM courses ORDER BY code ASC");
                 <h3>Contact Information</h3>
                 <p><i class="fas fa-envelope"></i> info@socsci3.edu</p>
                 <p><i class="fas fa-phone"></i> +63 900 000 0000</p>
-                <p><i class="fas fa-map-marker-alt"></i> University Campus, City</p>
+                <p><i class="fas fa-map-marker-alt"></i> Quezon City University</p>
             </div>
             <div class="footer-section">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#">Syllabus</a></li>
-                    <li><a href="#">Resources</a></li>
-                    <li><a href="#">Help Center</a></li>
+                <h3>Developers</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 0.5rem;">
+                        <a href="https://web.facebook.com/bagayan.231" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; color: #e2e8f0; text-decoration: none; transition: color 0.3s;">
+                            <i class="fab fa-facebook" style="width: 20px;"></i> John Wilmer Bagayan
+                        </a>
+                    </li>
+                    <li style="margin-bottom: 0.5rem;">
+                        <a href="https://www.facebook.com/share/17G91Ujema/" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; color: #e2e8f0; text-decoration: none; transition: color 0.3s;">
+                            <i class="fab fa-facebook" style="width: 20px;"></i> Juan Nathaniel Batallones
+                        </a>
+                    </li>
+                    <li style="margin-bottom: 0.5rem;">
+                        <a href="https://www.facebook.com/share/17Dnsk5BPk/" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; color: #e2e8f0; text-decoration: none; transition: color 0.3s;">
+                            <i class="fab fa-facebook" style="width: 20px;"></i> Zydriff Bernardino
+                        </a>
+                    </li>
+                    <li style="margin-bottom: 0.5rem;">
+                        <a href="https://www.facebook.com/jorenarcel.buagas?mibextid=ZbWKwL" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; color: #e2e8f0; text-decoration: none; transition: color 0.3s;">
+                            <i class="fab fa-facebook" style="width: 20px;"></i> Joren Arcel Buagas
+                        </a>
+                    </li>
+                    <li style="margin-bottom: 0.5rem;">
+                        <a href="https://www.facebook.com/share/1FqELDeGj1/" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; color: #e2e8f0; text-decoration: none; transition: color 0.3s;">
+                            <i class="fab fa-facebook" style="width: 20px;"></i> Matt Henry Benaventura
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

@@ -126,7 +126,6 @@ if(isset($_GET['edit'])) {
             <th>Subject</th>
             <th>Description</th>
             <th>File</th>
-            <th>Date</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -145,7 +144,6 @@ if(isset($_GET['edit'])) {
                     <span style="color: #94a3b8; font-size: 0.875rem;">No File</span>
                 <?php endif; ?>
             </td>
-            <td><?= $row['created_at'] ?></td>
             <td>
                 <div class="action-buttons-container">
                     <?php if($row['file_path']): ?>

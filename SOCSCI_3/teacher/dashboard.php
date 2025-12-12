@@ -212,7 +212,6 @@ $completion_rate = $total_submissions > 0 ? round(($graded_count / $total_submis
                 <tr>
                     <th><i class="fas fa-user"></i> Student Name</th>
                     <th><i class="fas fa-tasks"></i> Activity Title</th>
-                    <th><i class="fas fa-calendar"></i> Date Submitted</th>
                     <th><i class="fas fa-star"></i> Grade</th>
                     <th style="text-align: center;"><i class="fas fa-cog"></i> Actions</th>
                 </tr>
@@ -230,12 +229,6 @@ $completion_rate = $total_submissions > 0 ? round(($graded_count / $total_submis
                                 </div>
                             </td>
                             <td><?= htmlspecialchars($sub['activity_title']) ?></td>
-                            <td>
-                                <div style="display: flex; flex-direction: column;">
-                                    <span><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></span>
-                                    <small style="color: #64748b;"><?= date('h:i A', strtotime($sub['submitted_at'])) ?></small>
-                                </div>
-                            </td>
                             <td>
                                 <?php if ($sub['grade'] !== null): ?>
                                     <span class="badge badge-success">
@@ -258,7 +251,7 @@ $completion_rate = $total_submissions > 0 ? round(($graded_count / $total_submis
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="5" style="padding: 2rem; text-align: center; color: #64748b;">
+                        <td colspan="4" style="padding: 2rem; text-align: center; color: #64748b;">
                             <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; display: block; opacity: 0.3;"></i>
                             No submissions found.
                         </td>

@@ -15,7 +15,6 @@ $resources = $conn->query("SELECT r.*, u.first_name, u.last_name FROM resources 
             <th>Subject</th>
             <th>Description</th>
             <th>Teacher</th>
-            <th>Date</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -25,7 +24,6 @@ $resources = $conn->query("SELECT r.*, u.first_name, u.last_name FROM resources 
             <td><?= htmlspecialchars($row['subject']) ?></td>
             <td><?= htmlspecialchars($row['description']) ?></td>
             <td><?= htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?></td>
-            <td><?= $row['created_at'] ?></td>
             <td>
                 <div class="action-buttons-container">
                     <?php if($row['file_path']): ?>

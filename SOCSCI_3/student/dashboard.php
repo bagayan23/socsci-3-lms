@@ -285,7 +285,6 @@ $pending_activities = $conn->query("
             <thead>
                 <tr>
                     <th><i class="fas fa-bookmark"></i> Subject</th>
-                    <th><i class="fas fa-calendar"></i> Date Added</th>
                     <th style="text-align: center;"><i class="fas fa-cog"></i> Action</th>
                 </tr>
             </thead>
@@ -299,12 +298,6 @@ $pending_activities = $conn->query("
                                 <?= htmlspecialchars($row['subject']) ?>
                             </div>
                         </td>
-                        <td>
-                            <div style="display: flex; flex-direction: column;">
-                                <span><?= date('M d, Y', strtotime($row['created_at'])) ?></span>
-                                <small style="color: #64748b;"><?= date('h:i A', strtotime($row['created_at'])) ?></small>
-                            </div>
-                        </td>
                         <td style="text-align: center;">
                             <a href="resources.php" class="btn" style="width: auto; padding: 0.5rem 1rem;">
                                 <i class="fas fa-eye"></i> View
@@ -314,7 +307,7 @@ $pending_activities = $conn->query("
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="3" style="padding: 2rem; text-align: center; color: #64748b;">
+                        <td colspan="2" style="padding: 2rem; text-align: center; color: #64748b;">
                             <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; display: block; opacity: 0.3;"></i>
                             No resources available yet.
                         </td>

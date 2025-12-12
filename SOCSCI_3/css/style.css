@@ -513,19 +513,66 @@ footer {
 }
 
 .toggle-link {
-    display: block;
-    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
     margin-top: 1rem;
+    padding: 0.75rem;
+    background: transparent;
+    border: 1px solid transparent;
     color: #6366f1;
     cursor: pointer;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
+    border-radius: 999px;
 }
 
-.toggle-link:hover {
+.toggle-link:hover,
+.toggle-link:focus {
     color: #4f46e5;
     text-decoration: underline;
+    outline: none;
+}
+
+.toggle-link:focus-visible {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    box-shadow: var(--shadow-md);
+}
+
+.alert i {
+    font-size: 1.25rem;
+}
+
+.alert-error {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border-left: 4px solid var(--error-color);
+}
+
+.alert-error i {
+    color: var(--error-color);
+}
+
+.alert-success {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border-left: 4px solid var(--success-color);
+}
+
+.alert-success i {
+    color: var(--success-color);
 }
 
 /* Dashboard Layout */
